@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCS | Register</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="community.html">Community ▾</a>
+      <a href="about.html">About</a>
+      <a href="student-reservation.html">Reservation</a>
+      <a href="login.html" id="navLogin">Login</a>
+      <a href="register.html" id="navRegister">Register</a>
+    </div>
+  </nav>
+
+  <div class="auth-bg">
+    <div class="auth-card">
+      <a class="back-btn" href="index.html">Back</a>
+      <img src="images/ucmainccslogo.png" alt="UC Logo" class="auth-logo">
+      <h2>Sign up</h2>
+      <form action="#" method="post" id="registerForm">
+        <div class="form-group">
+          <input type="text" name="id_number" id="reg_id" required>
+          <label>ID Number</label>
+        </div>
+        <div class="form-group">
+          <input type="text" name="last_name" id="reg_last" required>
+          <label>Last Name</label>
+        </div>
+        <div class="form-group">
+          <input type="text" name="first_name" id="reg_first" required>
+          <label>First Name</label>
+        </div>
+        <div class="form-group">
+          <input type="text" name="middle_name" id="reg_middle">
+          <label>Middle Name</label>
+        </div>
+        <div class="form-group">
+          <input type="email" name="email" id="reg_email" required>
+          <label>Email</label>
+        </div>
+        <div class="form-group">
+          <select name="course_program" id="reg_course_program" required>
+            <option value="" disabled selected>Select a program</option>
+            <option value="BSIT">BSIT - Bachelor of Science in Information Technology</option>
+            <option value="BSCS">BSCS - Bachelor of Science in Computer Science</option>
+            <option value="ACT">ACT - Associate in Computer Technology</option>
+          </select>
+          <label>Course Program</label>
+        </div>
+        <div class="form-group">
+          <select name="course_level" id="reg_course_level" required>
+            <option value="" disabled selected>Select level</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+          <label>Course Level</label>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" id="reg_password" required>
+          <label>Password</label>
+        </div>
+        <div class="form-group">
+          <input type="password" name="repeat_password" id="reg_repeat_password" required>
+          <label>Repeat your password</label>
+        </div>
+        <div class="form-group">
+          <input type="text" name="address" id="reg_address">
+          <label>Address</label>
+        </div>
+        <button class="btn-submit" type="submit">Register</button>
+      </form>
+      <div class="auth-alt">
+        Already have an account? <a href="login.html">Login here</a>
+      </div>
+      <div id="register_message" class="form-message"></div>
+    </div>
+  </div>
+
+</body>
+</html>

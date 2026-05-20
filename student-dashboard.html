@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - CCS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .student-dashboard {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .dashboard-header {
+      background: linear-gradient(135deg, #380402 0%, #5c0a06 100%);
+      color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .dashboard-header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+    .dashboard-header p {
+      opacity: 0.9;
+    }
+    .dashboard-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .dashboard-content {
+        grid-template-columns: 1fr;
+      }
+    }
+    .dashboard-section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    .dashboard-section h3 {
+      color: #380402;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #380402;
+      font-size: 1.2rem;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .info-item {
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .info-item label {
+      font-size: 0.85rem;
+      color: #666;
+      font-weight: 600;
+    }
+    .info-item span {
+      font-size: 0.95rem;
+      color: #333;
+      font-weight: 500;
+    }
+    .announcement-item {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      border-left: 4px solid #0d6efd;
+    }
+    .announcement-item:last-child {
+      margin-bottom: 0;
+    }
+    .announcement-date {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .announcement-text {
+      font-size: 0.95rem;
+      color: #333;
+      line-height: 1.5;
+    }
+    .rules-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .rules-list li {
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #333;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .rules-list li:last-child {
+      margin-bottom: 0;
+    }
+    .rules-list li::before {
+      content: '✓';
+      color: #0d6efd;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .no-announcements {
+      text-align: center;
+      color: #666;
+      padding: 30px;
+      font-size: 0.9rem;
+    }
+    .edit-profile-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    .edit-profile-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .btn-primary {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 0.9rem;
+    }
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .modal-header h3 {
+      font-size: 1rem;
+      color: #333;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666;
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: Arial, sans-serif;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 15px;
+    }
+    .data-table thead {
+      background: #f8f9fa;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .data-table th {
+      font-weight: 600;
+      color: #333;
+    }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-completed {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .no-data {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .star-rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: center;
+      gap: 5px;
+      margin: 15px 0;
+    }
+    .star-rating input {
+      display: none;
+    }
+    .star-rating label {
+      font-size: 2rem;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+      color: #ffc107;
+    }
+    .feedback-success {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      text-align: center;
+      display: none;
+    }
+    .feedback-error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      text-align: center;
+      display: none;
+    }
+    .btn-feedback {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    .btn-feedback:hover {
+      background: #0b5ed7;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 12px;
+      position: relative;
+    }
+    .notification-wrapper {
+      position: relative;
+    }
+    .notification-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+    .notification-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .notification-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #dc3545;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #380402;
+    }
+    .notification-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      width: 360px;
+      max-width: calc(100vw - 30px);
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+      border: 1px solid #e9ecef;
+      display: none;
+      overflow: hidden;
+      z-index: 1200;
+    }
+    .notification-panel.show {
+      display: block;
+    }
+    .notification-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .notification-header h4 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .notification-header span {
+      font-size: 0.75rem;
+      color: #666;
+    }
+    .notification-list {
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .notification-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f3f5;
+      background: #fff;
+    }
+    .notification-item.unread {
+      background: #f8fbff;
+    }
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    .notification-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .notification-message {
+      font-size: 0.84rem;
+      color: #555;
+      line-height: 1.45;
+      margin-bottom: 5px;
+    }
+    .notification-time {
+      font-size: 0.75rem;
+      color: #888;
+    }
+    .notification-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 768px) {
+      .notification-panel {
+        right: -10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div style="display: flex; align-items: center; margin-left: auto;">
+      <div class="nav-links" id="navLinks">
+        <a href="student-dashboard.html" class="active">Dashboard</a>
+        <a href="student-reservation.html">Reservation</a>
+        <a href="sitin-request.html">Sit-in Request</a>
+      </div>
+      <div class="nav-actions">
+        <div class="notification-wrapper">
+          <button id="notificationBtn" class="notification-btn" type="button" aria-label="Notifications">🔔</button>
+          <div id="notificationBadge" class="notification-badge">0</div>
+          <div id="notificationPanel" class="notification-panel">
+            <div class="notification-header">
+              <div>
+                <h4>Notifications</h4>
+                <span>Latest sit-in status updates</span>
+              </div>
+            </div>
+            <div id="notificationList" class="notification-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="student-dashboard">
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <img src="" alt="Profile" id="headerProfilePicture" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; background: #e9ecef;" onerror="this.style.display='none'">
+        <div id="headerAvatarPlaceholder" style="width: 60px; height: 60px; border-radius: 50%; background: #0d6efd; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; border: 3px solid #fff;">
+          <span id="headerAvatarInitial">A</span>
+        </div>
+        <div>
+          <h1 id="welcomeName">Welcome, Student!</h1>
+          <p id="studentIdDisplay">ID: --</p>
+        </div>
+      </div>
+      <button class="edit-profile-btn" onclick="window.location.href='edit-profile.html'">✏️ Edit Profile</button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+      
+      <!-- Student Information -->
+      <div class="dashboard-section">
+        <h3>📋 My Information</h3>
+        <div class="info-grid" id="studentInfoGrid">
+          <!-- Info will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div class="dashboard-section">
+        <h3>📢 Announcements</h3>
+        <div id="announcementsList">
+          <!-- Announcements will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Sit-in History -->
+      <div class="dashboard-section" style="grid-column: 1 / -1;">
+        <h3>📋 My Sit-in History</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Sit ID</th>
+              <th>Purpose</th>
+              <th>Lab</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Feedback</th>
+            </tr>
+          </thead>
+          <tbody id="sitInHistoryBody">
+            <!-- Data will be loaded here -->
+          </tbody>
+        </table>
+        <div id="noSitInHistory" class="no-data" style="display: none;">No sit-in records yet</div>
+      </div>
+
+      <!-- Rules and Regulations -->
+      <div class="dashboard-section" style="grid-column: 1 / -1;">
+        <h3>📜 Rules and Regulations</h3>
+        <ul class="rules-list">
+          <li>All students must present a valid ID before entering the laboratory.</li>
+          <li>Students are only allowed to use the computers for educational purposes.</li>
+          <li>Food and drinks are strictly prohibited inside the laboratory.</li>
+          <li>Students must follow the proper shutdown procedure before leaving.</li>
+          <li>Any damage to equipment must be reported immediately to the lab technician.</li>
+          <li>Noise levels must be kept at a minimum to maintain a conducive learning environment.</li>
+          <li>Students must log out of their accounts after each session.</li>
+          <li>Unauthorized software installation is prohibited.</li>
+          <li>Students must respect the time limits for computer usage during peak hours.</li>
+          <li>Violation of rules may result in suspension of laboratory privileges.</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedbackModal" style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center;">
+    <div style="background: #fff; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #e9ecef;">
+        <h3 style="font-size: 1rem; color: #333; margin: 0;">Submit Feedback</h3>
+        <button onclick="closeFeedbackModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+      </div>
+      <div style="padding: 20px;">
+        <div class="star-rating-modal" style="display: flex; flex-direction: row-reverse; justify-content: center; gap: 5px; margin: 15px 0;">
+          <input type="radio" id="modalStar5" name="modalRating" value="5" style="display: none;">
+          <label for="modalStar5" data-value="5" style="font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s;">★</label>
+          <input type="radio" id="modalStar4" name="modalRating" value="4" style="display: none;">
+          <label for="modalStar4" data-value="4" style="font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s;">★</label>
+          <input type="radio" id="modalStar3" name="modalRating" value="3" style="display: none;">
+          <label for="modalStar3" data-value="3" style="font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s;">★</label>
+          <input type="radio" id="modalStar2" name="modalRating" value="2" style="display: none;">
+          <label for="modalStar2" data-value="2" style="font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s;">★</label>
+          <input type="radio" id="modalStar1" name="modalRating" value="1" style="display: none;">
+          <label for="modalStar1" data-value="1" style="font-size: 2rem; color: #ddd; cursor: pointer; transition: color 0.2s;">★</label>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 0.85rem; color: #555; margin-bottom: 5px; font-weight: 500;">Feedback / Comments</label>
+          <textarea id="modalFeedbackText" placeholder="Share your experience with us..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; font-family: Arial, sans-serif; min-height: 100px; resize: vertical;"></textarea>
+        </div>
+        <div id="modalFeedbackSuccess" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; text-align: center; display: none;">Thank you for your feedback!</div>
+        <div id="modalFeedbackError" style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; text-align: center; display: none;">Error submitting feedback.</div>
+        <button onclick="submitModalFeedback()" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 10px;">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="admin-script.js"></script>
+  <script>
+    let currentUser = null;
+    let studentNotifications = [];
+
+    function getNotificationStorageKey() {
+      if (!currentUser) return 'ccs_last_notification_seen_guest';
+      return `ccs_last_notification_seen_${currentUser.id_number}`;
+    }
+
+    function getLastSeenNotificationTime() {
+      const rawValue = localStorage.getItem(getNotificationStorageKey());
+      return rawValue ? new Date(rawValue).getTime() : 0;
+    }
+
+    function formatNotificationTime(dateValue) {
+      const date = new Date(dateValue);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function buildStudentNotifications() {
+      const allSitIns = AdminDB.getAllSitIns();
+      const mySitIns = allSitIns.filter(s => s.student_id === currentUser.id_number);
+      const notifications = [];
+
+      mySitIns.forEach(record => {
+        if (record.approved_at) {
+          notifications.push({
+            id: `approved-${record.id}`,
+            title: 'Sit-in request approved',
+            message: `${record.purpose} for ${record.lab || 'the assigned lab'} has been approved by admin.`,
+            timestampRaw: record.approved_at
+          });
+        }
+        if (record.rejected_at) {
+          notifications.push({
+            id: `rejected-${record.id}`,
+            title: 'Sit-in request rejected',
+            message: `${record.purpose} for ${record.lab || 'the selected lab'} was rejected by admin.`,
+            timestampRaw: record.rejected_at
+          });
+        }
+        if (record.status === 'Completed') {
+          notifications.push({
+            id: `completed-${record.id}`,
+            title: 'Sit-in session completed',
+            message: `${record.purpose} in ${record.lab || 'the lab'} has been marked as completed.`,
+            timestampRaw: record.completed_at || record.updated_at || record.created_at
+          });
+        }
+        if (record.status === 'Pending') {
+          notifications.push({
+            id: `pending-${record.id}`,
+            title: 'Sit-in request submitted',
+            message: `Your request for ${record.purpose} in ${record.lab || 'the selected lab'} is waiting for admin approval.`,
+            timestampRaw: record.created_at
+          });
+        }
+      });
+
+      return notifications
+        .filter(notification => notification.timestampRaw)
+        .sort((a, b) => new Date(b.timestampRaw) - new Date(a.timestampRaw))
+        .map(notification => ({
+          ...notification,
+          timestamp: formatNotificationTime(notification.timestampRaw)
+        }));
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notificationList');
+      const badge = document.getElementById('notificationBadge');
+      if (!list || !badge) return;
+
+      studentNotifications = buildStudentNotifications();
+      const lastSeen = getLastSeenNotificationTime();
+      const unreadCount = studentNotifications.filter(item => new Date(item.timestampRaw).getTime() > lastSeen).length;
+
+      if (!studentNotifications.length) {
+        list.innerHTML = '<div class="notification-empty">No notifications yet.</div>';
+      } else {
+        list.innerHTML = studentNotifications.map(item => {
+          const isUnread = new Date(item.timestampRaw).getTime() > lastSeen;
+          return `
+            <div class="notification-item ${isUnread ? 'unread' : ''}">
+              <div class="notification-title">${item.title}</div>
+              <div class="notification-message">${item.message}</div>
+              <div class="notification-time">${item.timestamp}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function markNotificationsAsSeen() {
+      if (!studentNotifications.length) return;
+      localStorage.setItem(getNotificationStorageKey(), studentNotifications[0].timestampRaw);
+      renderNotifications();
+    }
+
+    function initNotificationPanel() {
+      const button = document.getElementById('notificationBtn');
+      const panel = document.getElementById('notificationPanel');
+      if (!button || !panel) return;
+
+      button.addEventListener('click', function(event) {
+        event.stopPropagation();
+        const willShow = !panel.classList.contains('show');
+        panel.classList.toggle('show', willShow);
+        if (willShow) {
+          markNotificationsAsSeen();
+        }
+      });
+
+      panel.addEventListener('click', function(event) {
+        event.stopPropagation();
+      });
+
+      document.addEventListener('click', function() {
+        panel.classList.remove('show');
+      });
+    }
+
+    function checkStudentAuth() {
+      currentUser = LocalDB.getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    function loadDashboard() {
+      checkStudentAuth();
+
+      // Load student info
+      document.getElementById('welcomeName').textContent = `Welcome, ${currentUser.first_name}!`;
+      document.getElementById('studentIdDisplay').textContent = `ID: ${currentUser.id_number}`;
+
+      // Load profile picture
+      loadProfilePicture();
+
+      // Load student info grid
+      const infoGrid = document.getElementById('studentInfoGrid');
+      infoGrid.innerHTML = `
+        <div class="info-item">
+          <label>Full Name</label>
+          <span>${currentUser.first_name} ${currentUser.last_name}</span>
+        </div>
+        <div class="info-item">
+          <label>ID Number</label>
+          <span>${currentUser.id_number}</span>
+        </div>
+        <div class="info-item">
+          <label>Email</label>
+          <span>${currentUser.email}</span>
+        </div>
+        <div class="info-item">
+          <label>Course Program</label>
+          <span>${getCourseProgramText(currentUser.course_program)}</span>
+        </div>
+        <div class="info-item">
+          <label>Year Level</label>
+          <span>${getLevelText(currentUser.course_level)}</span>
+        </div>
+        <div class="info-item">
+          <label>Remaining Sessions</label>
+          <span>${currentUser.remaining_session || 30}</span>
+        </div>
+      `;
+
+      // Load announcements
+      loadAnnouncements();
+      renderNotifications();
+    }
+
+    // Load profile picture
+    function loadProfilePicture() {
+      const picture = document.getElementById('headerProfilePicture');
+      const placeholder = document.getElementById('headerAvatarPlaceholder');
+      const avatarInitial = document.getElementById('headerAvatarInitial');
+
+      if (currentUser.profile_picture) {
+        picture.src = currentUser.profile_picture;
+        picture.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        picture.style.display = 'none';
+        placeholder.style.display = 'flex';
+        avatarInitial.textContent = (currentUser.first_name || 'A').charAt(0).toUpperCase();
+      }
+    }
+
+    // Load announcements from AdminDB
+    function loadAnnouncements() {
+      const container = document.getElementById('announcementsList');
+      if (!container) return;
+
+      try {
+        const announcements = AdminDB.getAllAnnouncements();
+
+        if (announcements.length === 0) {
+          container.innerHTML = '<div class="no-announcements">No announcements at the moment</div>';
+          return;
+        }
+
+        container.innerHTML = announcements.map(ann => {
+          const date = new Date(ann.created_at || Date.now()).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+          return `
+            <div class="announcement-item">
+              <div class="announcement-date">📅 ${date}</div>
+              <div class="announcement-text">${ann.text}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Error loading announcements:', e);
+        container.innerHTML = '<div class="no-announcements">Unable to load announcements</div>';
+      }
+    }
+
+    function getCourseProgramText(code) {
+      const programs = {
+        'BSIT': 'BSIT - Bachelor of Science in Information Technology',
+        'BSCS': 'BSCS - Bachelor of Science in Computer Science',
+        'ACT': 'ACT - Associate in Computer Technology'
+      };
+      return programs[code] || code;
+    }
+
+    function getLevelText(level) {
+      const levels = { '1': '1st Year', '2': '2nd Year', '3': '3rd Year', '4': '4th Year' };
+      return levels[level] || level;
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    let currentSitInIdForFeedback = null;
+
+    function updateModalStarRating(selectedValue) {
+      const labels = document.querySelectorAll('.star-rating-modal label');
+      labels.forEach(label => {
+        const starValue = parseInt(label.getAttribute('data-value'), 10);
+        label.style.color = starValue <= selectedValue ? '#ffc107' : '#ddd';
+      });
+    }
+
+    function initModalStarRating() {
+      const radios = document.querySelectorAll('input[name="modalRating"]');
+      const labels = document.querySelectorAll('.star-rating-modal label');
+
+      radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          updateModalStarRating(parseInt(this.value, 10));
+        });
+      });
+
+      labels.forEach(label => {
+        label.addEventListener('click', function() {
+          const selectedValue = parseInt(this.getAttribute('data-value'), 10);
+          const matchingRadio = document.querySelector(`input[name="modalRating"][value="${selectedValue}"]`);
+          if (!matchingRadio) return;
+          matchingRadio.checked = true;
+          matchingRadio.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      });
+    }
+
+    function openFeedbackModalForSitIn(sitInId) {
+      currentSitInIdForFeedback = sitInId;
+      document.getElementById('feedbackModal').style.display = 'flex';
+      // Reset form
+      const radios = document.querySelectorAll('input[name="modalRating"]');
+      radios.forEach(r => r.checked = false);
+      document.getElementById('modalFeedbackText').value = '';
+      document.getElementById('modalFeedbackSuccess').style.display = 'none';
+      document.getElementById('modalFeedbackError').style.display = 'none';
+      
+      // Reset star colors
+      updateModalStarRating(0);
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').style.display = 'none';
+      currentSitInIdForFeedback = null;
+    }
+
+    function submitModalFeedback() {
+      const ratingInput = document.querySelector('input[name="modalRating"]:checked');
+      const feedbackText = document.getElementById('modalFeedbackText').value.trim();
+      const successMsg = document.getElementById('modalFeedbackSuccess');
+      const errorMsg = document.getElementById('modalFeedbackError');
+
+      successMsg.style.display = 'none';
+      errorMsg.style.display = 'none';
+
+      if (!ratingInput) {
+        errorMsg.textContent = 'Please select a rating.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      if (!currentUser) {
+        errorMsg.textContent = 'Please login first.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      const feedbackData = {
+        student_id: currentUser.id_number,
+        student_name: `${currentUser.first_name} ${currentUser.last_name}`,
+        rating: parseInt(ratingInput.value),
+        feedback: feedbackText,
+        sitin_id: currentSitInIdForFeedback
+      };
+
+      const result = AdminDB.addFeedback(feedbackData);
+
+      if (result.success) {
+        successMsg.style.display = 'block';
+        setTimeout(() => {
+          closeFeedbackModal();
+          loadSitInHistory();
+        }, 1500);
+      } else {
+        errorMsg.textContent = result.message || 'Error submitting feedback.';
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    // Load sit-in history for the current student
+    function loadSitInHistory() {
+      const tbody = document.getElementById('sitInHistoryBody');
+      const noData = document.getElementById('noSitInHistory');
+
+      if (!tbody) return;
+
+      const allSitIns = AdminDB.getAllSitIns();
+      const mySitIns = allSitIns.filter(s => s.student_id === currentUser.id_number);
+
+      // Sort by date (newest first)
+      mySitIns.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+      if (mySitIns.length === 0) {
+        tbody.innerHTML = '';
+        noData.style.display = 'block';
+        return;
+      }
+
+      noData.style.display = 'none';
+      tbody.innerHTML = mySitIns.map(sitin => {
+        const date = formatDate(sitin.sitin_date || sitin.created_at);
+        const time = sitin.start_time || 'N/A';
+        let statusClass = 'status-completed';
+        if (sitin.status === 'Pending') statusClass = 'status-pending';
+        else if (sitin.status === 'Active') statusClass = 'status-active';
+        else if (sitin.status === 'Rejected') statusClass = 'status-rejected';
+
+        // Check if feedback was already submitted for this sit-in
+        const allFeedbacks = AdminDB.getAllFeedback();
+        const hasFeedback = allFeedbacks.some(f => f.sitin_id === sitin.id);
+
+        // Show feedback button for completed sessions
+        const feedbackButton = sitin.status === 'Completed'
+          ? (hasFeedback
+              ? '<span style="color: #6c757d; font-size: 0.8rem;">✓ Feedback Submitted</span>'
+              : `<button class="btn-feedback" onclick="openFeedbackModalForSitIn('${sitin.id}')">Give Feedback</button>`
+            )
+          : '<span style="color: #6c757d; font-size: 0.8rem;">Not Available</span>';
+
+        return `
+          <tr>
+            <td>${sitin.sitin_id || sitin.id}</td>
+            <td>${sitin.purpose}</td>
+            <td>${sitin.lab}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td><span class="status-badge ${statusClass}">${sitin.status}</span></td>
+            <td>${feedbackButton}</td>
+          </tr>
+        `;
+      }).join('');
+
+      renderNotifications();
+    }
+
+    // Format date helper
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: 'numeric'
+      });
+    }
+
+    // Submit feedback
+    function initFeedbackForm() {
+      const form = document.getElementById('studentFeedbackForm');
+      const successMsg = document.getElementById('feedbackSuccess');
+      const errorMsg = document.getElementById('feedbackError');
+
+      if (!form) return;
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const ratingInput = document.querySelector('input[name="rating"]:checked');
+        const feedbackText = document.getElementById('feedbackText').value.trim();
+
+        // Hide previous messages
+        successMsg.style.display = 'none';
+        errorMsg.style.display = 'none';
+
+        if (!ratingInput) {
+          errorMsg.textContent = 'Please select a rating.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        const feedbackData = {
+          student_id: currentUser.id_number,
+          student_name: `${currentUser.first_name} ${currentUser.last_name}`,
+          rating: parseInt(ratingInput.value),
+          feedback: feedbackText
+        };
+
+        const result = AdminDB.addFeedback(feedbackData);
+
+        if (result.success) {
+          successMsg.style.display = 'block';
+          form.reset();
+          setTimeout(() => {
+            successMsg.style.display = 'none';
+          }, 3000);
+        } else {
+          errorMsg.textContent = result.message || 'Error submitting feedback. Please try again.';
+          errorMsg.style.display = 'block';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Render user bubble in nav
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks) {
+        UserBubble.render(navLinks);
+      }
+      initNotificationPanel();
+      initModalStarRating();
+      loadDashboard();
+      loadSitInHistory();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Student - CCS Admin</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <style>
+    .request-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-top: 20px;
+      border-left: 4px solid #ffc107;
+    }
+    .request-card.active {
+      border-left-color: #198754;
+    }
+    .request-card.rejected {
+      border-left-color: #dc3545;
+    }
+    .request-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .request-student {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #380402;
+    }
+    .request-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .request-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .detail-item {
+      font-size: 0.9rem;
+    }
+    .detail-item label {
+      color: #666;
+      font-size: 0.8rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+    .detail-item span {
+      color: #333;
+      font-weight: 500;
+    }
+    .request-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-approve {
+      background: #198754;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-approve:hover {
+      background: #146c43;
+    }
+    .btn-reject {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-reject:hover {
+      background: #b02a37;
+    }
+    .lab-select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      min-width: 150px;
+    }
+    .no-requests {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-size: 0.9rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+    .student-sitin-section {
+      margin-top: 20px;
+    }
+    .section-title {
+      font-size: 1.1rem;
+      color: #380402;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #380402;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <span class="nav-brand">College of Computer Studies Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="admin.html">Home</a>
+      <a href="search-student.html" class="active">Search</a>
+      <a href="student-list.html">Students</a>
+      <a href="sit-in-form.html">Sit-in</a>
+      <a href="sit-in-records.html">Sit-in Records</a>
+      <a href="sit-in-reports.html">Sit-in Reports</a>
+      <a href="feedback-reports.html">Feedback Reports</a>
+      <a href="reservation.html">Reservation</a>
+      <a href="announcements.html">Announcements</a>
+      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <div class="page-header">
+      <h1>Search Student</h1>
+      <p>Search for students and manage their sit-in requests</p>
+    </div>
+
+    <div class="table-container">
+      <div class="table-controls">
+        <input type="text" id="searchInput" class="table-search" placeholder="Search by ID Number or Name...">
+        <button class="btn-primary" onclick="searchStudent()">Search</button>
+        <button class="btn-primary" onclick="showAllStudents()">Show All</button>
+      </div>
+
+      <div id="searchResults">
+        <div class="no-data">Enter a search term to find students</div>
+      </div>
+    </div>
+
+    <!-- Student Sit-in Requests Section (shown after viewing a student) -->
+    <div id="studentSitinSection" class="student-sitin-section" style="display: none;">
+      <h3 class="section-title">📋 Sit-in Requests for <span id="studentNameDisplay"></span></h3>
+      <div id="sitinRequestsList">
+        <!-- Request cards will be loaded here -->
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin-script.js"></script>
+  <script>
+    let currentStudentId = null;
+
+    function searchStudent() {
+      const searchInput = document.getElementById('searchInput');
+      const resultsContainer = document.getElementById('searchResults');
+      const sitinSection = document.getElementById('studentSitinSection');
+
+      // Hide sit-in section when searching
+      sitinSection.style.display = 'none';
+
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) {
+        resultsContainer.innerHTML = '<div class="no-data">Please enter a search term</div>';
+        return;
+      }
+
+      const users = AdminDB.getAllUsers();
+      const results = users.filter(user =>
+        user.id_number.toLowerCase().includes(query) ||
+        (user.first_name + ' ' + user.last_name).toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+
+      if (results.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-data">No students found matching your search</div>';
+      } else {
+        // Get active sit-ins to check session status
+        const activeSitIns = AdminDB.getCurrentSitIns();
+        
+        resultsContainer.innerHTML = `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID Number</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Year Level</th>
+                <th>Session Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${results.map(user => {
+                // Check if user has active session
+                const activeSession = activeSitIns.find(s => s.student_id === user.id_number && s.status === 'Active');
+                const hasActiveSession = !!activeSession;
+                const remainingSessions = hasActiveSession ? (activeSession.remaining_session || 30) : (user.remaining_session || 30);
+                
+                return `
+                <tr>
+                  <td>${user.id_number}</td>
+                  <td>${user.first_name} ${user.last_name}</td>
+                  <td>${user.email}</td>
+                  <td>${user.course_program}</td>
+                  <td>${getLevelText(user.course_level)}</td>
+                  <td>
+                    ${hasActiveSession 
+                      ? `<span style="color: #198754; font-weight: 600;">● Active (${remainingSessions} left)</span>` 
+                      : `<span style="color: #666;">○ No active session</span>`
+                    }
+                  </td>
+                  <td>
+                    <button class="btn-edit" onclick="viewStudent('${user.id_number}')">View Requests</button>
+                    ${hasActiveSession ? `<button class="btn-reject" style="margin-top: 5px;" onclick="endSessionDirect('${activeSession.id}', '${user.id_number}', ${remainingSessions})">⏹️ End Session</button>` : ''}
+                  </td>
+                </tr>
+              `;
+              }).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top: 10px; color: #666; font-size: 0.85rem;">
+            Found ${results.length} student(s)
+          </div>
+        `;
+      }
+    }
+
+    function showAllStudents() {
+      document.getElementById('searchInput').value = '';
+      const resultsContainer = document.getElementById('searchResults');
+      const sitinSection = document.getElementById('studentSitinSection');
+
+      // Hide sit-in section
+      sitinSection.style.display = 'none';
+
+      const users = AdminDB.getAllUsers();
+      const activeSitIns = AdminDB.getCurrentSitIns();
+
+      if (users.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-data">No students registered yet</div>';
+        return;
+      }
+
+      resultsContainer.innerHTML = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID Number</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Course</th>
+              <th>Year Level</th>
+              <th>Session Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(user => {
+              const activeSession = activeSitIns.find(s => s.student_id === user.id_number && s.status === 'Active');
+              const hasActiveSession = !!activeSession;
+              const remainingSessions = hasActiveSession ? (activeSession.remaining_session || 30) : (user.remaining_session || 30);
+              
+              return `
+              <tr>
+                <td>${user.id_number}</td>
+                <td>${user.first_name} ${user.last_name}</td>
+                <td>${user.email}</td>
+                <td>${user.course_program}</td>
+                <td>${getLevelText(user.course_level)}</td>
+                <td>
+                  ${hasActiveSession 
+                    ? `<span style="color: #198754; font-weight: 600;">● Active (${remainingSessions} left)</span>` 
+                    : `<span style="color: #666;">○ No active session</span>`
+                  }
+                </td>
+                <td>
+                  <button class="btn-edit" onclick="viewStudent('${user.id_number}')">View Requests</button>
+                  ${hasActiveSession ? `<button class="btn-reject" style="margin-top: 5px;" onclick="endSessionDirect('${activeSession.id}', '${user.id_number}', ${remainingSessions})">⏹️ End Session</button>` : ''}
+                </td>
+              </tr>
+            `;
+            }).join('')}
+          </tbody>
+        </table>
+        <div style="margin-top: 10px; color: #666; font-size: 0.85rem;">
+          Total: ${users.length} student(s)
+        </div>
+      `;
+    }
+
+    function viewStudent(idNumber) {
+      currentStudentId = idNumber;
+      const user = AdminDB.getUserById(idNumber);
+      
+      if (user) {
+        // Show student sit-in requests section
+        const sitinSection = document.getElementById('studentSitinSection');
+        const studentNameDisplay = document.getElementById('studentNameDisplay');
+        
+        studentNameDisplay.textContent = `${user.first_name} ${user.last_name} (${user.id_number})`;
+        sitinSection.style.display = 'block';
+        
+        // Load student's sit-in requests
+        loadStudentRequests(idNumber);
+        
+        // Scroll to requests section
+        sitinSection.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        alert('Student not found!');
+      }
+    }
+
+    function loadStudentRequests(studentId) {
+      const allSitIns = AdminDB.getAllSitIns();
+      const studentRequests = allSitIns.filter(s => s.student_id === studentId);
+      
+      const container = document.getElementById('sitinRequestsList');
+      
+      if (studentRequests.length === 0) {
+        container.innerHTML = '<div class="no-requests">No sit-in requests for this student</div>';
+        return;
+      }
+      
+      // Sort by created_at (newest first)
+      studentRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      container.innerHTML = studentRequests.map(req => {
+        const date = formatDate(req.sitin_date || req.created_at);
+        const statusClass = req.status === 'Pending' ? 'status-pending' :
+                           req.status === 'Active' ? 'status-active' : 'status-rejected';
+        const cardClass = req.status === 'Pending' ? '' : req.status.toLowerCase();
+        
+        return `
+          <div class="request-card ${cardClass}">
+            <div class="request-header">
+              <div>
+                <div class="request-student">${req.student_name}</div>
+                <div style="font-size: 0.85rem; color: #666;">${req.student_id}</div>
+              </div>
+              <span class="request-status ${statusClass}">${req.status}</span>
+            </div>
+            <div class="request-details">
+              <div class="detail-item">
+                <label>Purpose</label>
+                <span>${req.purpose}</span>
+              </div>
+              <div class="detail-item">
+                <label>Current Lab</label>
+                <span>${req.lab || 'Not assigned'}</span>
+              </div>
+              <div class="detail-item">
+                <label>Date</label>
+                <span>${date}</span>
+              </div>
+              <div class="detail-item">
+                <label>Time</label>
+                <span>${req.start_time || 'N/A'}</span>
+              </div>
+              <div class="detail-item">
+                <label>Remaining Sessions</label>
+                <span>${req.remaining_session || 30}</span>
+              </div>
+              <div class="detail-item">
+                <label>Requested</label>
+                <span>${new Date(req.created_at).toLocaleString()}</span>
+              </div>
+            </div>
+            ${req.status === 'Pending' ? `
+            <div class="request-actions">
+              <label style="font-weight: 500; color: #555;">Assign Lab:</label>
+              <select class="lab-select" id="labSelect_${req.id}">
+                <option value="">Select Lab</option>
+                <option value="Lab 524">Lab 524</option>
+                <option value="Lab 525">Lab 525</option>
+                <option value="Lab 526">Lab 526</option>
+                <option value="Lab 527">Lab 527</option>
+                <option value="Lab 528">Lab 528</option>
+              </select>
+              <button class="btn-approve" onclick="approveRequest('${req.id}')">✓ Approve</button>
+              <button class="btn-reject" onclick="rejectRequest('${req.id}')">✗ Reject</button>
+            </div>
+            ` : req.status === 'Active' ? `
+            <div class="request-actions">
+              <button class="btn-reject" style="background: #dc3545;" onclick="endSession('${req.id}', '${req.student_id}', ${req.remaining_session || 30})">⏹️ End Session</button>
+            </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function approveRequest(id) {
+      const labSelect = document.getElementById(`labSelect_${id}`);
+      const selectedLab = labSelect ? labSelect.value : '';
+      
+      if (!selectedLab) {
+        alert('Please select a lab room for this student.');
+        return;
+      }
+      
+      if (!confirm(`Approve this sit-in request and assign to ${selectedLab}?`)) {
+        return;
+      }
+
+      const result = AdminDB.updateSitIn(id, {
+        status: 'Active',
+        lab: selectedLab
+      });
+
+      if (result.success) {
+        alert(`Sit-in request approved! Student assigned to ${selectedLab}`);
+        loadStudentRequests(currentStudentId);
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function rejectRequest(id) {
+      const reason = prompt('Enter reason for rejection (optional):');
+      if (reason === null) return;
+
+      const result = AdminDB.updateSitIn(id, {
+        status: 'Rejected',
+        rejection_reason: reason || 'Not specified'
+      });
+
+      if (result.success) {
+        alert('Sit-in request rejected.');
+        loadStudentRequests(currentStudentId);
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function endSession(id, studentId, remainingSessions) {
+      if (!confirm('End this sit-in session? This will decrease the student\'s remaining sessions by 1.')) {
+        return;
+      }
+
+      // Calculate new remaining sessions
+      const newRemainingSessions = Math.max(0, (remainingSessions || 30) - 1);
+
+      // Update sit-in record
+      const sitInResult = AdminDB.updateSitIn(id, {
+        status: 'Completed',
+        remaining_session: newRemainingSessions
+      });
+
+      if (!sitInResult.success) {
+        alert('Error ending session: ' + sitInResult.message);
+        return;
+      }
+
+      // Update student's remaining sessions in user database
+      const users = AdminDB.getAllUsers();
+      const userIndex = users.findIndex(u => u.id_number === studentId);
+
+      if (userIndex !== -1) {
+        users[userIndex].remaining_session = newRemainingSessions;
+        AdminDB.saveAllUsers(users);
+      }
+
+      alert(`Session ended successfully! Student's remaining sessions: ${newRemainingSessions}`);
+      loadStudentRequests(currentStudentId);
+    }
+
+    function endSessionDirect(sitinId, studentId, remainingSessions) {
+      if (!confirm('End this sit-in session for this student?\n\nThis will:\n• Mark the session as Completed\n• Decrease remaining sessions by 1\n\nContinue?')) {
+        return;
+      }
+
+      // Calculate new remaining sessions
+      const newRemainingSessions = Math.max(0, (remainingSessions || 30) - 1);
+
+      // Update sit-in record
+      const sitInResult = AdminDB.updateSitIn(sitinId, {
+        status: 'Completed',
+        remaining_session: newRemainingSessions
+      });
+
+      if (!sitInResult.success) {
+        alert('Error ending session: ' + sitInResult.message);
+        return;
+      }
+
+      // Update student's remaining sessions in user database
+      const users = AdminDB.getAllUsers();
+      const userIndex = users.findIndex(u => u.id_number === studentId);
+
+      if (userIndex !== -1) {
+        users[userIndex].remaining_session = newRemainingSessions;
+        AdminDB.saveAllUsers(users);
+      }
+
+      alert(`Session ended successfully!\n\nStudent's remaining sessions: ${newRemainingSessions}`);
+      
+      // Refresh search results to show updated status
+      searchStudent();
+    }
+
+    // Allow Enter key to search
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            searchStudent();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

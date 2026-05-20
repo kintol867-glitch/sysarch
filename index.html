@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCS | Home</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* User Bubble Styles for index page */
+    .user-bubble-container {
+      position: relative;
+      margin-left: 10px;
+      padding-left: 10px;
+      border-left: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .user-bubble {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .user-bubble:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      background: #0d6efd;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .user-name {
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .dropdown-arrow {
+      color: #fff;
+      font-size: 0.65rem;
+      margin-left: 4px;
+    }
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      min-width: 240px;
+      margin-top: 8px;
+      z-index: 1000;
+      display: none;
+      overflow: hidden;
+    }
+    .user-dropdown.show {
+      display: block;
+    }
+    .dropdown-header {
+      background: linear-gradient(135deg, #380402 0%, #5c0a06 100%);
+      color: #fff;
+      padding: 12px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .dropdown-header strong {
+      font-size: 0.95rem;
+    }
+    .dropdown-header span {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+    .dropdown-info {
+      padding: 10px 15px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .dropdown-item {
+      display: block;
+      padding: 10px 15px;
+      color: #333;
+      text-decoration: none;
+      transition: background 0.2s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: Arial, sans-serif;
+    }
+    .dropdown-item:hover {
+      background: #f0f0f0;
+    }
+    .logout-btn {
+      color: #dc3545 !important;
+      border-top: 1px solid #e9ecef;
+      font-weight: 500;
+    }
+    .logout-btn:hover {
+      background: #fef5f5;
+    }
+
+    /* My Sit-in Status Section */
+    .sitin-status-section {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .sitin-status-section h2 {
+      color: #380402;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+    .sitin-table {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .sitin-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .sitin-table thead {
+      background: #f8f9fa;
+    }
+    .sitin-table th,
+    .sitin-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .sitin-table th {
+      font-weight: 600;
+      color: #333;
+    }
+    .sitin-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-completed {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .btn-feedback {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+    .btn-feedback:hover {
+      background: #0b5ed7;
+    }
+    .btn-feedback:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .home-leaderboard-section {
+      margin-bottom: 40px;
+    }
+    .section-title {
+      color: #380402;
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .home-leaderboard-table {
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    .home-leaderboard-table table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .home-leaderboard-table th,
+    .home-leaderboard-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .home-leaderboard-table th {
+      background: #f8f9fa;
+      color: #333;
+      font-weight: 600;
+    }
+    .home-leaderboard-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .rank-badge {
+      display: inline-block;
+      min-width: 38px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: #e9ecef;
+      color: #333;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    .rank-1 .rank-badge {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .rank-2 .rank-badge {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .rank-3 .rank-badge {
+      background: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+  <script src="script.js"></script>
+  <script src="admin-script.js"></script>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="#leaderboardsSection">Leaderboards</a>
+      <a href="community.html">Community ▾</a>
+      <a href="about.html">About</a>
+      <a href="student-reservation.html" id="navReservation" style="display: none;">Reservation</a>
+      <a href="login.html" id="navLogin">Login</a>
+      <a href="register.html" id="navRegister">Register</a>
+    </div>
+  </nav>
+
+  <div class="landing-body">
+    <div class="home-content">
+      <div class="welcome-section">
+        <h1>Welcome to CCS Sit-in Monitoring System</h1>
+        <p>Track and manage your sit-in activities efficiently</p>
+      </div>
+
+      <div class="features-section">
+        <div class="feature-card">
+          <h3>📚 Monitor Activities</h3>
+          <p>Keep track of all your sit-in sessions and course-related activities</p>
+        </div>
+        <div class="feature-card">
+          <h3>👥 Community</h3>
+          <p>Connect with fellow CCS students from BSIT, BSCS, and ACT programs</p>
+        </div>
+        <div class="feature-card">
+          <h3>💻 Programming</h3>
+          <p>Access resources for Java, Python, C++, and JavaScript learning</p>
+        </div>
+      </div>
+
+      <div class="home-leaderboard-section" id="leaderboardsSection">
+        <h2 class="section-title">Student Leaderboards</h2>
+        <div class="home-leaderboard-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Points</th>
+                <th>Hours</th>
+                <th>Tasks</th>
+              </tr>
+            </thead>
+            <tbody id="homeLeaderboardBody">
+              <!-- Leaderboard rows will be loaded here -->
+            </tbody>
+          </table>
+          <div id="homeLeaderboardEmpty" class="no-data" style="display: none;">No student data available for leaderboard ranking.</div>
+        </div>
+      </div>
+
+      <div class="cta-section">
+        <a href="register.html" class="btn-primary">Get Started</a>
+        <a href="about.html" class="btn-secondary">Learn More</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Sit-in Status Section (shown when logged in) -->
+  <div class="sitin-status-section" id="sitinStatusSection" style="display: none;">
+    <h2>📋 My Sit-in Sessions</h2>
+    <div class="sitin-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Sit ID</th>
+            <th>Purpose</th>
+            <th>Lab</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Feedback</th>
+          </tr>
+        </thead>
+        <tbody id="mySitInTableBody">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+      <div id="noSitInData" class="no-data" style="display: none;">No sit-in sessions yet</div>
+    </div>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedbackModal" style="display: none;">
+    <div id="modalOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999;"></div>
+    <div id="modalContent" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: #fff; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); padding: 0;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 2px solid #e9ecef; background: #f8f9fa; border-radius: 12px 12px 0 0;">
+        <h3 style="font-size: 1.2rem; color: #333; margin: 0; font-weight: 600;">Submit Feedback</h3>
+        <button id="closeFeedbackBtn" style="background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #999; padding: 0 8px; line-height: 1;">&times;</button>
+      </div>
+      <div style="padding: 20px;">
+        <p style="text-align: center; margin-bottom: 10px; font-size: 0.9rem; color: #555;">Click a star to rate:</p>
+        <div id="starContainer" style="text-align: center; margin: 20px 0; font-size: 0;"></div>
+        <input type="hidden" id="selectedRating" value="">
+        <div id="ratingDisplay" style="text-align: center; font-size: 1rem; color: #666; margin-bottom: 10px;"></div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; font-size: 0.85rem; color: #555; margin-bottom: 5px; font-weight: 500;">Feedback / Comments</label>
+          <textarea id="modalFeedbackText" placeholder="Share your experience with us..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; font-family: Arial, sans-serif; min-height: 100px; resize: vertical;"></textarea>
+        </div>
+        <div id="modalFeedbackSuccess" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; text-align: center; display: none;">Thank you for your feedback!</div>
+        <div id="modalFeedbackError" style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; text-align: center; display: none;">Error submitting feedback.</div>
+        <button id="submitFeedbackBtn" style="width: 100%; margin-top: 15px; padding: 10px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.95rem;">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var currentSitInId = null;
+
+    // Color the stars up to the selected value
+    function colorStars(value) {
+      var stars = document.querySelectorAll('.starIcon');
+      for (var i = 0; i < stars.length; i++) {
+        var starValue = parseInt(stars[i].getAttribute('data-value'));
+        stars[i].style.color = (starValue <= value) ? '#ffc107' : '#ddd';
+      }
+    }
+
+    // Open feedback modal
+    function openFeedbackModal(sitInId) {
+      currentSitInId = sitInId;
+      var modal = document.getElementById('feedbackModal');
+      if (modal) {
+        modal.style.display = 'block';
+      }
+      // Reset everything
+      document.getElementById('selectedRating').value = '';
+      document.getElementById('modalFeedbackText').value = '';
+      document.getElementById('modalFeedbackSuccess').style.display = 'none';
+      document.getElementById('modalFeedbackError').style.display = 'none';
+      document.getElementById('ratingDisplay').textContent = '';
+      colorStars(0);
+    }
+
+    // Close modal
+    function closeFeedbackModal() {
+      var modal = document.getElementById('feedbackModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      currentSitInId = null;
+    }
+
+    // Submit feedback
+    function submitModalFeedback() {
+      var ratingValue = document.getElementById('selectedRating').value;
+      var feedbackText = document.getElementById('modalFeedbackText').value.trim();
+      var successMsg = document.getElementById('modalFeedbackSuccess');
+      var errorMsg = document.getElementById('modalFeedbackError');
+
+      successMsg.style.display = 'none';
+      errorMsg.style.display = 'none';
+
+      if (!ratingValue) {
+        errorMsg.textContent = 'Please click a star to rate.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      var user = LocalDB.getCurrentUser();
+      if (!user) {
+        errorMsg.textContent = 'Please login first.';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      var feedbackData = {
+        student_id: user.id_number,
+        student_name: user.first_name + ' ' + user.last_name,
+        rating: parseInt(ratingValue),
+        feedback: feedbackText,
+        sitin_id: currentSitInId
+      };
+
+      var result = AdminDB.addFeedback(feedbackData);
+
+      if (result.success) {
+        successMsg.style.display = 'block';
+        setTimeout(function() {
+          closeFeedbackModal();
+          loadMySitInSessions();
+        }, 1500);
+      } else {
+        errorMsg.textContent = result.message || 'Error submitting feedback.';
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    // Load sit-in sessions
+    function loadMySitInSessions() {
+      var user = LocalDB.getCurrentUser();
+      var section = document.getElementById('sitinStatusSection');
+      var tbody = document.getElementById('mySitInTableBody');
+      var noData = document.getElementById('noSitInData');
+
+      if (!user) {
+        if (section) section.style.display = 'none';
+        return;
+      }
+
+      if (section) section.style.display = 'block';
+
+      var allSitIns = AdminDB.getAllSitIns();
+      var mySitIns = [];
+      for (var i = 0; i < allSitIns.length; i++) {
+        if (allSitIns[i].student_id === user.id_number) {
+          mySitIns.push(allSitIns[i]);
+        }
+      }
+
+      mySitIns.sort(function(a, b) {
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      });
+
+      if (!tbody) return;
+
+      if (mySitIns.length === 0) {
+        tbody.innerHTML = '';
+        if (noData) noData.style.display = 'block';
+        return;
+      }
+
+      if (noData) noData.style.display = 'none';
+
+      var allFeedbacks = AdminDB.getAllFeedback();
+      var html = '';
+
+      for (var i = 0; i < mySitIns.length; i++) {
+        var sitin = mySitIns[i];
+        var date = formatDate(sitin.sitin_date || sitin.created_at);
+        var statusClass = 'status-completed';
+
+        if (sitin.status === 'Pending') statusClass = 'status-pending';
+        else if (sitin.status === 'Active') statusClass = 'status-active';
+        else if (sitin.status === 'Rejected') statusClass = 'status-rejected';
+
+        var hasFeedback = false;
+        for (var j = 0; j < allFeedbacks.length; j++) {
+          if (allFeedbacks[j].sitin_id === sitin.id) {
+            hasFeedback = true;
+            break;
+          }
+        }
+
+        var feedbackHtml = '';
+        if (sitin.status === 'Completed') {
+          if (hasFeedback) {
+            feedbackHtml = '<span style="color: #6c757d; font-size: 0.8rem;">✓ Feedback Submitted</span>';
+          } else {
+            feedbackHtml = '<button class="btn-feedback" data-sitin-id="' + sitin.id + '">Give Feedback</button>';
+          }
+        } else {
+          feedbackHtml = '<span style="color: #6c757d; font-size: 0.8rem;">Not Available</span>';
+        }
+
+        html += '<tr>';
+        html += '<td>' + (sitin.sitin_id || sitin.id) + '</td>';
+        html += '<td>' + sitin.purpose + '</td>';
+        html += '<td>' + sitin.lab + '</td>';
+        html += '<td>' + date + '</td>';
+        html += '<td><span class="status-badge ' + statusClass + '">' + sitin.status + '</span></td>';
+        html += '<td>' + feedbackHtml + '</td>';
+        html += '</tr>';
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    function loadHomeLeaderboards() {
+      var tbody = document.getElementById('homeLeaderboardBody');
+      var empty = document.getElementById('homeLeaderboardEmpty');
+      if (!tbody || typeof AdminDB === 'undefined' || !AdminDB.getStudentLeaderboard) return;
+
+      var entries = AdminDB.getStudentLeaderboard().slice(0, 10);
+      if (entries.length === 0) {
+        tbody.innerHTML = '';
+        if (empty) empty.style.display = 'block';
+        return;
+      }
+
+      if (empty) empty.style.display = 'none';
+
+      var html = '';
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var rankClass = entry.rank <= 3 ? ' class="rank-' + entry.rank + '"' : '';
+        html += '<tr' + rankClass + '>';
+        html += '<td><span class="rank-badge">#' + entry.rank + '</span></td>';
+        html += '<td>' + entry.student_name + '</td>';
+        html += '<td>' + entry.course_program + '</td>';
+        html += '<td>' + entry.earned_points.toFixed(2).replace(/\.00$/, '') + '</td>';
+        html += '<td>' + entry.total_hours.toFixed(2).replace(/\.00$/, '') + '</td>';
+        html += '<td>' + entry.task_completed + '</td>';
+        html += '</tr>';
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    // Format date
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      var date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: 'numeric'
+      });
+    }
+
+    // Initialize page with addEventListener like the test page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded');
+
+      if (typeof PageAuth !== 'undefined') {
+        PageAuth.checkAuth();
+      }
+
+      loadMySitInSessions();
+      loadHomeLeaderboards();
+
+      // Create stars dynamicallyically
+      var starContainer = document.getElementById('starContainer');
+      if (starContainer) {
+        for (var i = 1; i <= 5; i++) {
+          var span = document.createElement('span');
+          span.className = 'starIcon';
+          span.setAttribute('data-value', i);
+          span.textContent = '\u2605';
+          span.style.cssText = 'font-size: 3rem; color: #ddd; cursor: pointer; display: inline-block; padding: 0 8px; user-select: none;';
+          starContainer.appendChild(span);
+        }
+      }
+
+      // Event listener for stars
+      starContainer = document.getElementById('starContainer');
+      if (starContainer) {
+        starContainer.addEventListener('click', function(e) {
+          if (e.target.classList.contains('starIcon')) {
+            var value = parseInt(e.target.getAttribute('data-value'));
+            document.getElementById('selectedRating').value = value;
+            colorStars(value);
+            var display = document.getElementById('ratingDisplay');
+            var texts = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent!'];
+            display.textContent = texts[value] + ' (' + value + '/5)';
+            display.style.color = '#ffc107';
+          }
+        });
+      }
+
+      // Event listener for close button
+      var closeBtn = document.getElementById('closeFeedbackBtn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          closeFeedbackModal();
+        });
+      }
+
+      // Event listener for overlay (click outside to close)
+      var overlay = document.getElementById('modalOverlay');
+      if (overlay) {
+        overlay.addEventListener('click', function() {
+          closeFeedbackModal();
+        });
+      }
+
+      // Event listener for submit button
+      var submitBtn = document.getElementById('submitFeedbackBtn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+          submitModalFeedback();
+        });
+      }
+
+      // Event delegation for feedback buttons in table
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-feedback')) {
+          var sitInId = e.target.getAttribute('data-sitin-id');
+          if (sitInId) {
+            openFeedbackModal(sitInId);
+          }
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

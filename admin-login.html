@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - CCS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-login-link {
+      text-align: center;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e9ecef;
+    }
+    .admin-login-link a {
+      color: #0d6efd;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .admin-login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="community.html">Community ▾</a>
+      <a href="about.html">About</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+    </div>
+  </nav>
+
+  <div class="auth-bg">
+    <div class="auth-card">
+      <a class="back-btn" href="index.html">Back</a>
+      <img src="images/ucmainccslogo.png" alt="UC Logo" class="auth-logo">
+      <h2>Admin Login</h2>
+      <form action="#" method="post" id="adminLoginForm">
+        <div class="form-group">
+          <input type="text" name="username" id="admin_username" required>
+          <label>Username</label>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" id="admin_password" required>
+          <label>Password</label>
+        </div>
+        <button class="btn-submit" type="submit">Login</button>
+      </form>
+      <div id="admin_login_message" class="form-message"></div>
+    </div>
+  </div>
+
+  <script>
+    // Admin credentials check
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: 'admin123'
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('adminLoginForm');
+      const messageDiv = document.getElementById('admin_login_message');
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('admin_username').value.trim();
+        const password = document.getElementById('admin_password').value;
+
+        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+          // Set admin session
+          sessionStorage.setItem('ccs_admin_logged_in', 'true');
+          sessionStorage.setItem('ccs_admin_username', username);
+          
+          messageDiv.textContent = 'Login successful! Redirecting...';
+          messageDiv.className = 'form-message success';
+          messageDiv.style.display = 'block';
+
+          setTimeout(function() {
+            window.location.href = 'admin.html';
+          }, 1000);
+        } else {
+          messageDiv.textContent = 'Invalid username or password. Please try again.';
+          messageDiv.className = 'form-message error';
+          messageDiv.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

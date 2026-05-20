@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCS Admin Dashboard</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <span class="nav-brand">College of Computer Studies Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="admin.html" class="active">Home</a>
+      <a href="search-student.html">Search</a>
+      <a href="student-list.html">Students</a>
+      <a href="sit-in-form.html">Sit-in</a>
+      <a href="sit-in-records.html">Sit-in Records</a>
+      <a href="sit-in-reports.html">Sit-in Reports</a>
+      <a href="feedback-reports.html">Feedback Reports</a>
+      <a href="reservation.html">Reservation</a>
+      <a href="announcements.html">Announcements</a>
+      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <!-- Statistics Section -->
+    <div class="stats-section">
+      <div class="stats-left">
+        <div class="panel-header">
+          <h3>📊 Statistics</h3>
+        </div>
+        <div class="stats-content">
+          <div class="stat-item">
+            <strong>Students Registered:</strong> <span id="totalRegistered">0</span>
+          </div>
+          <div class="stat-item">
+            <strong>Currently Sit-in:</strong> <span id="currentSitin">0</span>
+          </div>
+          <div class="stat-item">
+            <strong>Total Sit-ins:</strong> <span id="totalSitins">0</span>
+          </div>
+          <div class="stat-item">
+            <strong>Pending Reservations:</strong> <span id="pendingReservations">0</span>
+          </div>
+          <div class="stat-item">
+            <strong>Active Computers:</strong> <span id="activeComputers">0</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="sitinChart"></canvas>
+          </div>
+          <div class="chart-legend" id="chartLegend"></div>
+        </div>
+      </div>
+
+      <!-- Announcement Section -->
+      <div class="stats-right">
+        <div class="panel-header">
+          <h3>📢 Announcement</h3>
+        </div>
+        <div class="announcement-content">
+          <div class="announcement-form">
+            <label>New Announcement</label>
+            <textarea id="announcementText" placeholder="Write your announcement here..."></textarea>
+            <button class="btn-submit" onclick="postAnnouncement()">Submit</button>
+          </div>
+          <div class="announcement-list" id="announcementList">
+            <!-- Announcements will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    <div class="stats-section" style="margin-top: 20px;">
+      <div class="stats-left" style="flex: 1;">
+        <div class="panel-header">
+          <h3>🖥️ Computer Control Quick View</h3>
+        </div>
+        <div class="announcement-content">
+          <div id="computerQuickView" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+            <!-- Computer status will be loaded here -->
+          </div>
+          <button class="btn-primary" onclick="window.location.href='reservation.html'" style="margin-top: 15px;">Manage Computers</button>
+        </div>
+      </div>
+
+      <div class="stats-right" style="flex: 1;">
+        <div class="panel-header">
+          <h3>⏳ Pending Reservation Requests</h3>
+        </div>
+        <div class="announcement-content">
+          <div id="pendingReservationsList" style="max-height: 300px; overflow-y: auto;">
+            <!-- Pending reservations will be loaded here -->
+          </div>
+          <button class="btn-primary" onclick="window.location.href='reservation.html'" style="margin-top: 15px;">View All Requests</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reservation Logs -->
+    <div class="table-container" style="margin-top: 20px;">
+      <div class="table-header">
+        <h2>📋 Recent Reservation Logs</h2>
+        <div class="table-controls">
+          <button class="btn-primary" onclick="window.location.href='reservation.html'">View Full Logs</button>
+        </div>
+      </div>
+      <div class="announcement-content">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Reservation ID</th>
+              <th>Student</th>
+              <th>Lab Room</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentLogsBody">
+            <!-- Recent logs will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Search Modal -->
+  <div class="modal" id="searchModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Search Student</h3>
+        <button class="modal-close" onclick="closeModal('searchModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="searchInput" placeholder="Search by ID or Name...">
+        <button class="btn-search" onclick="searchStudent()">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin-script.js"></script>
+</body>
+</html>

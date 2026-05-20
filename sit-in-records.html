@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sit-in Records - CCS Admin</title>
+  <link rel="stylesheet" href="admin-styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    .records-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .records-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-export {
+      background: #198754;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-export:hover {
+      background: #146c43;
+    }
+    .btn-print {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-print:hover {
+      background: #0b5ed7;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .summary-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      border-left: 4px solid #0d6efd;
+    }
+    .summary-card.pending {
+      border-left-color: #ffc107;
+    }
+    .summary-card.active {
+      border-left-color: #198754;
+    }
+    .summary-card.completed {
+      border-left-color: #6c757d;
+    }
+    .summary-card.rejected {
+      border-left-color: #dc3545;
+    }
+    .summary-card .count {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .summary-card .label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+    }
+    .filter-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      align-items: end;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .filter-group label {
+      font-weight: 500;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    .filter-group input,
+    .filter-group select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .table-container-pdf {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .pdf-header {
+      display: none;
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #380402;
+    }
+    .pdf-header h1 {
+      color: #380402;
+      margin-bottom: 5px;
+    }
+    .pdf-header p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .data-table thead {
+      background: #f8f9fa;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .data-table th {
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+    }
+    .data-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-completed {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      padding: 6px 12px;
+      border: 1px solid #dee2e6;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .pagination button:hover:not(:disabled) {
+      background: #e9ecef;
+    }
+    .pagination button.active {
+      background: #0d6efd;
+      color: #fff;
+      border-color: #0d6efd;
+    }
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .entries-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .entries-control select {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    @media print {
+      .nav-links, .filter-section, .records-actions, .pagination, .entries-control, .btn-edit, .btn-delete {
+        display: none !important;
+      }
+      .pdf-header {
+        display: block !important;
+      }
+      .table-container-pdf {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <span class="nav-brand">College of Computer Studies Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="admin.html">Home</a>
+      <a href="search-student.html">Search</a>
+      <a href="student-list.html">Students</a>
+      <a href="sit-in-form.html">Sit-in</a>
+      <a href="sit-in-requests.html">Sit-in Requests</a>
+      <a href="sit-in-records.html" class="active">Sit-in Records</a>
+      <a href="sit-in-reports.html">Sit-in Reports</a>
+      <a href="feedback-reports.html">Feedback Reports</a>
+      <a href="reservation.html">Reservation</a>
+      <a href="announcements.html">Announcements</a>
+      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <div class="records-header">
+      <div>
+        <h1>📋 Sit-in Records</h1>
+        <p>Complete history of all sit-in sessions</p>
+      </div>
+      <div class="records-actions">
+        <button class="btn-export" onclick="exportToPDF()">
+          📄 Export PDF
+        </button>
+        <button class="btn-print" onclick="window.print()">
+          🖨️ Print
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="count" id="totalCount">0</div>
+        <div class="label">Total Records</div>
+      </div>
+      <div class="summary-card pending">
+        <div class="count" id="pendingCount">0</div>
+        <div class="label">Pending</div>
+      </div>
+      <div class="summary-card active">
+        <div class="count" id="activeCount">0</div>
+        <div class="label">Active</div>
+      </div>
+      <div class="summary-card completed">
+        <div class="count" id="completedCount">0</div>
+        <div class="label">Completed</div>
+      </div>
+      <div class="summary-card rejected">
+        <div class="count" id="rejectedCount">0</div>
+        <div class="label">Rejected</div>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <h3 style="margin-bottom: 15px; color: #380402;">🔍 Filters</h3>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filterStatus" onchange="applyFilters()">
+            <option value="all">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Active">Active</option>
+            <option value="Completed">Completed</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Course Program</label>
+          <select id="filterCourse" onchange="applyFilters()">
+            <option value="all">All Courses</option>
+            <option value="BSIT">BSIT</option>
+            <option value="BSCS">BSCS</option>
+            <option value="ACT">ACT</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Lab Room</label>
+          <select id="filterLab" onchange="applyFilters()">
+            <option value="all">All Labs</option>
+            <option value="Lab 524">Lab 524</option>
+            <option value="Lab 525">Lab 525</option>
+            <option value="Lab 526">Lab 526</option>
+            <option value="Lab 527">Lab 527</option>
+            <option value="Lab 528">Lab 528</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date From</label>
+          <input type="date" id="filterDateFrom" onchange="applyFilters()">
+        </div>
+        <div class="filter-group">
+          <label>Date To</label>
+          <input type="date" id="filterDateTo" onchange="applyFilters()">
+        </div>
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="filterSearch" placeholder="Student ID or Name" oninput="applyFilters()">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn-primary" onclick="resetFilters()">Reset Filters</button>
+        <button class="btn-submit" onclick="loadRecords()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container-pdf" id="recordsTableContainer">
+      <!-- PDF Header (hidden normally, shown on export/print) -->
+      <div class="pdf-header" id="pdfHeader">
+        <h1>CCS Sit-in Records Report</h1>
+        <p>College of Computer Studies - Sit-in Monitoring System</p>
+        <p id="reportDate">Generated: </p>
+        <p id="filterSummary"></p>
+      </div>
+
+      <div class="entries-control">
+        <label for="entriesPerPage">Show</label>
+        <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>entries per page</span>
+        <span style="margin-left: auto; color: #666;" id="recordCountDisplay">0 records found</span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sit ID</th>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Purpose</th>
+            <th>Lab</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+
+      <div id="noData" class="no-data" style="display: none;">No sit-in records found</div>
+
+      <div class="pagination" id="pagination">
+        <!-- Pagination will be generated here -->
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin-script.js"></script>
+  <script>
+    let allRecords = [];
+    let filteredRecords = [];
+    let currentPage = 1;
+    let entriesPerPage = 10;
+
+    function loadRecords() {
+      try {
+        allRecords = AdminDB.getAllSitIns();
+        filteredRecords = [...allRecords];
+        
+        // Sort by created_at (newest first)
+        filteredRecords.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        updateSummary();
+        applyFilters();
+      } catch (e) {
+        console.error('Error loading records:', e);
+        alert('Error loading records. Please refresh the page.');
+      }
+    }
+
+    function updateSummary() {
+      document.getElementById('totalCount').textContent = allRecords.length;
+      document.getElementById('pendingCount').textContent = allRecords.filter(r => r.status === 'Pending').length;
+      document.getElementById('activeCount').textContent = allRecords.filter(r => r.status === 'Active').length;
+      document.getElementById('completedCount').textContent = allRecords.filter(r => r.status === 'Completed').length;
+      document.getElementById('rejectedCount').textContent = allRecords.filter(r => r.status === 'Rejected').length;
+    }
+
+    function applyFilters() {
+      const statusFilter = document.getElementById('filterStatus').value;
+      const courseFilter = document.getElementById('filterCourse').value;
+      const labFilter = document.getElementById('filterLab').value;
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+      const searchQuery = document.getElementById('filterSearch').value.trim().toLowerCase();
+
+      filteredRecords = allRecords.filter(record => {
+        // Status filter
+        if (statusFilter !== 'all' && record.status !== statusFilter) {
+          return false;
+        }
+
+        // Course filter
+        if (courseFilter !== 'all') {
+          const student = AdminDB.getUserById(record.student_id);
+          if (!student || student.course_program !== courseFilter) {
+            return false;
+          }
+        }
+
+        // Lab filter
+        if (labFilter !== 'all' && record.lab !== labFilter) {
+          return false;
+        }
+
+        // Date filters
+        if (dateFrom) {
+          const recordDate = new Date(record.sitin_date || record.created_at);
+          const fromDate = new Date(dateFrom);
+          if (recordDate < fromDate) {
+            return false;
+          }
+        }
+
+        if (dateTo) {
+          const recordDate = new Date(record.sitin_date || record.created_at);
+          const toDate = new Date(dateTo);
+          if (recordDate > toDate) {
+            return false;
+          }
+        }
+
+        // Search filter
+        if (searchQuery) {
+          const student = AdminDB.getUserById(record.student_id);
+          const studentName = student ? `${student.first_name} ${student.last_name}`.toLowerCase() : '';
+          if (!record.student_id.toLowerCase().includes(searchQuery) && 
+              !studentName.includes(searchQuery) &&
+              !record.student_name.toLowerCase().includes(searchQuery)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      currentPage = 1;
+      renderTable();
+      updatePagination();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('recordsTableBody');
+      const noData = document.getElementById('noData');
+      const recordCountDisplay = document.getElementById('recordCountDisplay');
+
+      if (!tbody) return;
+
+      recordCountDisplay.textContent = `${filteredRecords.length} records found`;
+
+      if (filteredRecords.length === 0) {
+        tbody.innerHTML = '';
+        noData.style.display = 'block';
+        return;
+      }
+
+      noData.style.display = 'none';
+
+      const startIndex = (currentPage - 1) * entriesPerPage;
+      const endIndex = startIndex + entriesPerPage;
+      const pageData = filteredRecords.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageData.map(record => {
+        const student = AdminDB.getUserById(record.student_id);
+        const course = student ? student.course_program : 'N/A';
+        const date = formatDate(record.sitin_date || record.created_at);
+        const time = record.start_time || 'N/A';
+
+        let statusClass = 'status-completed';
+        if (record.status === 'Pending') statusClass = 'status-pending';
+        else if (record.status === 'Active') statusClass = 'status-active';
+        else if (record.status === 'Rejected') statusClass = 'status-rejected';
+
+        const actions = record.status === 'Active' 
+          ? `<button class="btn-edit" style="background: #dc3545;" onclick="endSessionFromRecords('${record.id}', '${record.student_id}', ${record.remaining_session || 30})">End Session</button>`
+          : '<span style="color: #6c757d; font-size: 0.85rem;">No actions</span>';
+
+        return `
+          <tr>
+            <td>${record.sitin_id || record.id}</td>
+            <td>${record.student_id}</td>
+            <td>${record.student_name}</td>
+            <td>${course}</td>
+            <td>${record.purpose}</td>
+            <td>${record.lab}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td><span class="status-badge ${statusClass}">${record.status}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updatePagination() {
+      const pagination = document.getElementById('pagination');
+      if (!pagination) return;
+
+      const totalPages = Math.ceil(filteredRecords.length / entriesPerPage);
+
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">« Prev</button>`;
+
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+          html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+          html += `<button disabled>...</button>`;
+        }
+      }
+
+      html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">Next »</button>`;
+
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      const totalPages = Math.ceil(filteredRecords.length / entriesPerPage);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderTable();
+      updatePagination();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changeEntriesPerPage() {
+      const select = document.getElementById('entriesPerPage');
+      entriesPerPage = parseInt(select.value);
+      currentPage = 1;
+      renderTable();
+      updatePagination();
+    }
+
+    function resetFilters() {
+      document.getElementById('filterStatus').value = 'all';
+      document.getElementById('filterCourse').value = 'all';
+      document.getElementById('filterLab').value = 'all';
+      document.getElementById('filterDateFrom').value = '';
+      document.getElementById('filterDateTo').value = '';
+      document.getElementById('filterSearch').value = '';
+      applyFilters();
+    }
+
+    function exportToPDF() {
+      // Update PDF header
+      document.getElementById('reportDate').textContent = 'Generated: ' + new Date().toLocaleString();
+      
+      const filters = [];
+      if (document.getElementById('filterStatus').value !== 'all') filters.push('Status: ' + document.getElementById('filterStatus').value);
+      if (document.getElementById('filterCourse').value !== 'all') filters.push('Course: ' + document.getElementById('filterCourse').value);
+      if (document.getElementById('filterLab').value !== 'all') filters.push('Lab: ' + document.getElementById('filterLab').value);
+      if (document.getElementById('filterDateFrom').value) filters.push('From: ' + document.getElementById('filterDateFrom').value);
+      if (document.getElementById('filterDateTo').value) filters.push('To: ' + document.getElementById('filterDateTo').value);
+      document.getElementById('filterSummary').textContent = filters.length > 0 ? 'Filters: ' + filters.join(' | ') : 'All records';
+
+      const element = document.getElementById('recordsTableContainer');
+      
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: 'sitin_records_' + new Date().toISOString().split('T')[0] + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      // Show loading message
+      const originalContent = document.querySelector('.records-actions').innerHTML;
+      document.querySelector('.records-actions').innerHTML = '<span style="color: #198754;">Generating PDF...</span>';
+
+      // Generate PDF
+      html2pdf().set(opt).from(element).save().then(() => {
+        document.querySelector('.records-actions').innerHTML = originalContent;
+      }).catch(err => {
+        console.error('PDF export error:', err);
+        alert('Error exporting PDF. Please try again.');
+        document.querySelector('.records-actions').innerHTML = originalContent;
+      });
+    }
+
+    function endSessionFromRecords(id, studentId, remainingSessions) {
+      const record = allSitIns.find(r => r.id === id);
+      if (!record) {
+        alert('Record not found!');
+        return;
+      }
+
+      if (!confirm(`End session for ${record.student_name}? This will decrease their remaining sessions from ${remainingSessions} to ${remainingSessions - 1}.`)) {
+        return;
+      }
+
+      const newRemainingSessions = Math.max(0, remainingSessions - 1);
+
+      const sitInResult = AdminDB.updateSitIn(id, {
+        status: 'Completed',
+        remaining_session: newRemainingSessions,
+        completed_at: new Date().toISOString()
+      });
+
+      if (!sitInResult.success) {
+        alert('Error ending session: ' + sitInResult.message);
+        return;
+      }
+
+      const users = AdminDB.getAllUsers();
+      const userIndex = users.findIndex(u => u.id_number === studentId);
+
+      if (userIndex !== -1) {
+        users[userIndex].remaining_session = newRemainingSessions;
+        AdminDB.saveAllUsers(users);
+      }
+
+      alert(`Session ended successfully! ${record.student_name}'s remaining sessions: ${newRemainingSessions}`);
+      loadRecords();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadRecords();
+    });
+  </script>
+</body>
+</html>

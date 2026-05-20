@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservation - CCS Admin</title>
+  <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <span class="nav-brand">College of Computer Studies Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="admin.html">Home</a>
+      <a href="search-student.html">Search</a>
+      <a href="student-list.html">Students</a>
+      <a href="sit-in-form.html">Sit-in</a>
+      <a href="sit-in-requests.html">Sit-in Requests</a>
+      <a href="sit-in-records.html">Sit-in Records</a>
+      <a href="sit-in-reports.html">Sit-in Reports</a>
+      <a href="feedback-reports.html">Feedback Reports</a>
+      <a href="reservation.html" class="active">Reservation</a>
+      <a href="announcements.html">Announcements</a>
+      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <div class="page-header">
+      <h1>Lab Reservation Management</h1>
+      <p>Manage computer labs, reservations, and view logs</p>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+      <button class="btn-primary active" onclick="showTab('computers')" id="tab-computers">🖥️ Computer Control</button>
+      <button class="btn-primary" onclick="showTab('requests')" id="tab-requests">📋 Reservation Requests</button>
+      <button class="btn-primary" onclick="showTab('logs')" id="tab-logs">📊 Reservation Logs</button>
+    </div>
+
+    <!-- Computer Control Tab -->
+    <div id="computers-tab" class="tab-content">
+      <div class="stats-section">
+        <div class="stats-left">
+          <div class="panel-header">
+            <h3>🖥️ Computer Status by Lab</h3>
+          </div>
+          <div class="announcement-content">
+            <div class="form-group">
+              <label>Select Lab Room</label>
+              <select id="labSelector" onchange="loadComputersByLab()">
+                <option value="all">All Labs</option>
+                <option value="Lab 524">Lab 524</option>
+                <option value="Lab 525">Lab 525</option>
+                <option value="Lab 526">Lab 526</option>
+                <option value="Lab 527">Lab 527</option>
+                <option value="Lab 528">Lab 528</option>
+              </select>
+            </div>
+            <div id="computersGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+              <!-- Computers will be loaded here -->
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-right">
+          <div class="panel-header">
+            <h3>📊 Computer Summary</h3>
+          </div>
+          <div class="announcement-content">
+            <div class="summary-cards" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+              <div style="background: #d4edda; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #155724;" id="availableCount">0</div>
+                <div style="font-size: 0.85rem; color: #155724;">Available</div>
+              </div>
+              <div style="background: #fff3cd; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #856404;" id="activeCount">0</div>
+                <div style="font-size: 0.85rem; color: #856404;">In Use</div>
+              </div>
+              <div style="background: #f8d7da; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #721c24;" id="maintenanceCount">0</div>
+                <div style="font-size: 0.85rem; color: #721c24;">Maintenance</div>
+              </div>
+              <div style="background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #495057;" id="totalCount">0</div>
+                <div style="font-size: 0.85rem; color: #495057;">Total Computers</div>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="resetComputers()" style="margin-top: 15px; width: 100%;">🔄 Reset All Computers</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reservation Requests Tab -->
+    <div id="requests-tab" class="tab-content" style="display: none;">
+      <div class="stats-section">
+        <!-- Reservation Form -->
+        <div class="stats-left">
+          <div class="panel-header">
+            <h3>📅 New Reservation</h3>
+          </div>
+          <div class="announcement-content">
+            <div class="form-group">
+              <label>Student ID Number</label>
+              <input type="text" id="resvStudentId" placeholder="Enter student ID">
+            </div>
+            <div class="form-group">
+              <label>Student Name</label>
+              <input type="text" id="resvStudentName" readonly style="background: #f8f9fa;">
+            </div>
+            <button class="btn-primary" onclick="findStudentForReservation()" style="margin-bottom: 15px;">Find Student</button>
+
+            <div id="reservationForm" style="display: none;">
+              <div class="form-group">
+                <label>Lab Room</label>
+                <select id="resvLabRoom">
+                  <option value="">Select Lab Room</option>
+                  <option value="Lab 524">Lab 524</option>
+                  <option value="Lab 525">Lab 525</option>
+                  <option value="Lab 526">Lab 526</option>
+                  <option value="Lab 527">Lab 527</option>
+                  <option value="Lab 528">Lab 528</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reservation Date</label>
+                <input type="date" id="resvDate">
+              </div>
+              <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" id="resvStartTime">
+              </div>
+              <div class="form-group">
+                <label>End Time</label>
+                <input type="time" id="resvEndTime">
+              </div>
+              <div class="form-group">
+                <label>Purpose</label>
+                <textarea id="resvPurpose" placeholder="Enter purpose of reservation" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.85rem; font-family: Arial, sans-serif; min-height: 80px; resize: vertical;"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Number of Students</label>
+                <input type="number" id="resvNumStudents" min="1" placeholder="e.g., 5">
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-submit" onclick="submitReservation()">Submit Reservation</button>
+                <button class="btn-danger" onclick="clearReservationForm()">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Requests List -->
+        <div class="stats-right">
+          <div class="panel-header">
+            <h3>⏳ Pending Requests</h3>
+          </div>
+          <div class="announcement-content">
+            <div id="pendingRequestsList" style="max-height: 600px; overflow-y: auto;">
+              <!-- Pending reservations will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reservation Logs Tab -->
+    <div id="logs-tab" class="tab-content" style="display: none;">
+      <div class="table-container">
+        <div class="table-header">
+          <h2>📊 All Reservation Logs</h2>
+          <div class="table-controls">
+            <input type="text" id="tableSearch" class="table-search" placeholder="Search..." oninput="loadReservations()">
+            <select id="filterStatus" onchange="loadReservations()" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+              <option value="all">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="entries-control" style="margin-bottom: 15px;">
+          <label for="entriesPerPage">Show</label>
+          <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span>entries per page</span>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Reservation ID</th>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Lab Room</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Purpose</th>
+              <th>Students</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reservationsTableBody">
+            <!-- Data will be loaded here -->
+          </tbody>
+        </table>
+
+        <div class="pagination" id="pagination">
+          <!-- Pagination will be generated here -->
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin-script.js"></script>
+  <script>
+    let selectedStudent = null;
+    let currentPage = 1;
+    let entriesPerPage = 10;
+    let allReservations = [];
+    let filteredReservations = [];
+    let allComputers = [];
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      loadComputersByLab();
+      loadPendingRequests();
+      loadReservations();
+    });
+
+    // Tab switching function
+    function showTab(tabName) {
+      // Hide all tabs
+      document.getElementById('computers-tab').style.display = 'none';
+      document.getElementById('requests-tab').style.display = 'none';
+      document.getElementById('logs-tab').style.display = 'none';
+
+      // Remove active class from all buttons
+      document.getElementById('tab-computers').classList.remove('active');
+      document.getElementById('tab-requests').classList.remove('active');
+      document.getElementById('tab-logs').classList.remove('active');
+
+      // Show selected tab
+      document.getElementById(tabName + '-tab').style.display = 'block';
+      document.getElementById('tab-' + tabName).classList.add('active');
+
+      // Load data for selected tab
+      if (tabName === 'computers') {
+        loadComputersByLab();
+      } else if (tabName === 'requests') {
+        loadPendingRequests();
+      } else if (tabName === 'logs') {
+        loadReservations();
+      }
+    }
+
+    // Computer Control Functions
+    function loadComputersByLab() {
+      const selectedLab = document.getElementById('labSelector').value;
+      const grid = document.getElementById('computersGrid');
+      if (!grid) return;
+
+      allComputers = AdminDB.getAllComputers();
+      let filteredComputers = allComputers;
+
+      if (selectedLab !== 'all') {
+        filteredComputers = allComputers.filter(c => c.lab_room === selectedLab);
+      }
+
+      // Update summary counts
+      document.getElementById('availableCount').textContent = allComputers.filter(c => c.status === 'Available').length;
+      document.getElementById('activeCount').textContent = allComputers.filter(c => c.status === 'Active').length;
+      document.getElementById('maintenanceCount').textContent = allComputers.filter(c => c.status === 'Maintenance').length;
+      document.getElementById('totalCount').textContent = allComputers.length;
+
+      if (filteredComputers.length === 0) {
+        grid.innerHTML = '<div class="no-data">No computers found</div>';
+        return;
+      }
+
+      grid.innerHTML = filteredComputers.map(computer => {
+        let statusColor = '#6c757d';
+        let statusBg = '#e9ecef';
+        let statusText = computer.status;
+        const softwareSystem = computer.software_system || '';
+
+        if (computer.status === 'Available') {
+          statusColor = '#155724';
+          statusBg = '#d4edda';
+        } else if (computer.status === 'Active') {
+          statusColor = '#856404';
+          statusBg = '#fff3cd';
+        } else if (computer.status === 'Maintenance') {
+          statusColor = '#721c24';
+          statusBg = '#f8d7da';
+        }
+
+        return `
+          <div style="background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 0.85rem;">${computer.name}</strong>
+              <span style="background: ${statusBg}; color: ${statusColor}; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 500;">${statusText}</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #666; margin-bottom: 10px;">
+              ${computer.lab_room}
+            </div>
+            ${computer.reserved_by ? `<div style="font-size: 0.75rem; color: #555; margin-bottom: 10px;">Reserved by: ${computer.reserved_by}</div>` : ''}
+            <div style="display: grid; gap: 8px;">
+              <label style="font-size: 0.72rem; color: #555; font-weight: 600;">
+                Software/System
+                <select onchange="updateComputerSoftwareSystem('${computer.id}', this.value)" style="width: 100%; margin-top: 4px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.78rem;">
+                  <option value="" ${softwareSystem === '' ? 'selected' : ''}>Select software</option>
+                  <option value="VS Code" ${softwareSystem === 'VS Code' ? 'selected' : ''}>VS Code</option>
+                  <option value="VMware" ${softwareSystem === 'VMware' ? 'selected' : ''}>VMware</option>
+                  <option value="VirtualBox" ${softwareSystem === 'VirtualBox' ? 'selected' : ''}>VirtualBox</option>
+                  <option value="NetBeans" ${softwareSystem === 'NetBeans' ? 'selected' : ''}>NetBeans</option>
+                  <option value="Eclipse" ${softwareSystem === 'Eclipse' ? 'selected' : ''}>Eclipse</option>
+                  <option value="Android Studio" ${softwareSystem === 'Android Studio' ? 'selected' : ''}>Android Studio</option>
+                  <option value="XAMPP" ${softwareSystem === 'XAMPP' ? 'selected' : ''}>XAMPP</option>
+                  <option value="MySQL Workbench" ${softwareSystem === 'MySQL Workbench' ? 'selected' : ''}>MySQL Workbench</option>
+                  <option value="Cisco Packet Tracer" ${softwareSystem === 'Cisco Packet Tracer' ? 'selected' : ''}>Cisco Packet Tracer</option>
+                  <option value="Microsoft Office" ${softwareSystem === 'Microsoft Office' ? 'selected' : ''}>Microsoft Office</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateComputerStatus(computerId, newStatus) {
+      const result = AdminDB.updateComputer(computerId, { status: newStatus });
+      if (result.success) {
+        loadComputersByLab();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function updateComputerSoftwareSystem(computerId, softwareSystem) {
+      const result = AdminDB.updateComputer(computerId, { software_system: softwareSystem });
+      if (result.success) {
+        loadComputersByLab();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function resetComputers() {
+      if (!confirm('Are you sure you want to reset all computers to Available status?')) {
+        return;
+      }
+
+      allComputers.forEach(computer => {
+        AdminDB.updateComputer(computer.id, {
+          status: 'Available',
+          software_system: '',
+          reserved_by: null,
+          reservation_id: null
+        });
+      });
+
+      alert('All computers have been reset to Available status.');
+      loadComputersByLab();
+    }
+
+    function findStudentForReservation() {
+      const idNumber = document.getElementById('resvStudentId').value.trim();
+
+      if (!idNumber) {
+        alert('Please enter a student ID number.');
+        return;
+      }
+
+      const user = AdminDB.getUserById(idNumber);
+
+      if (!user) {
+        alert('Student not found.');
+        selectedStudent = null;
+        document.getElementById('resvStudentName').value = '';
+        document.getElementById('reservationForm').style.display = 'none';
+        return;
+      }
+
+      selectedStudent = user;
+      document.getElementById('resvStudentName').value = `${user.first_name} ${user.last_name}`;
+      document.getElementById('reservationForm').style.display = 'block';
+
+      // Set default date to today
+      document.getElementById('resvDate').valueAsDate = new Date();
+    }
+
+    function submitReservation() {
+      if (!selectedStudent) {
+        alert('Please find a student first.');
+        return;
+      }
+
+      const labRoom = document.getElementById('resvLabRoom').value;
+      const resvDate = document.getElementById('resvDate').value;
+      const startTime = document.getElementById('resvStartTime').value;
+      const endTime = document.getElementById('resvEndTime').value;
+      const purpose = document.getElementById('resvPurpose').value.trim();
+      const numStudents = document.getElementById('resvNumStudents').value;
+
+      if (!labRoom) {
+        alert('Please select a lab room.');
+        return;
+      }
+
+      if (!resvDate) {
+        alert('Please select a reservation date.');
+        return;
+      }
+
+      if (!startTime || !endTime) {
+        alert('Please select start and end times.');
+        return;
+      }
+
+      if (!purpose) {
+        alert('Please enter the purpose of reservation.');
+        return;
+      }
+
+      if (!numStudents || numStudents < 1) {
+        alert('Please enter a valid number of students.');
+        return;
+      }
+
+      const reservation = {
+        id: 'RESV-' + Date.now(),
+        student_id: selectedStudent.id_number,
+        student_name: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
+        lab_room: labRoom,
+        date: resvDate,
+        start_time: startTime,
+        end_time: endTime,
+        purpose: purpose,
+        num_students: parseInt(numStudents),
+        status: 'Pending',
+        created_at: new Date().toISOString()
+      };
+
+      const result = AdminDB.addReservation(reservation);
+      
+      if (result.success) {
+        alert('Reservation submitted successfully! Status: Pending');
+        clearReservationForm();
+        loadReservations();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function clearReservationForm() {
+      document.getElementById('resvStudentId').value = '';
+      document.getElementById('resvStudentName').value = '';
+      document.getElementById('resvLabRoom').value = '';
+      document.getElementById('resvDate').value = '';
+      document.getElementById('resvStartTime').value = '';
+      document.getElementById('resvEndTime').value = '';
+      document.getElementById('resvPurpose').value = '';
+      document.getElementById('resvNumStudents').value = '';
+      document.getElementById('reservationForm').style.display = 'none';
+      selectedStudent = null;
+    }
+
+    function loadPendingRequests() {
+      const container = document.getElementById('pendingRequestsList');
+      if (!container) return;
+
+      const reservations = AdminDB.getAllReservations();
+      const pendingReservations = reservations.filter(r => r.status === 'Pending');
+
+      if (pendingReservations.length === 0) {
+        container.innerHTML = '<div class="no-data">No pending reservation requests</div>';
+        return;
+      }
+
+      container.innerHTML = pendingReservations.map(resv => {
+        const date = formatDate(resv.date);
+        return `
+          <div style="padding: 12px 0; border-bottom: 1px solid #e9ecef;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <strong>${resv.student_name}</strong>
+              <span style="color: #ffc107; font-size: 0.8rem;">Pending</span>
+            </div>
+            <div style="font-size: 0.8rem; color: #666; margin-bottom: 4px;">
+              ${resv.lab_room} | ${date} | ${resv.start_time} - ${resv.end_time}
+            </div>
+            <div style="font-size: 0.8rem; color: #555; margin-bottom: 8px;">
+              ${resv.purpose}
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-submit" style="padding: 4px 10px; font-size: 0.75rem;" onclick="updateReservationStatus('${resv.id}', 'Approved')">Approve</button>
+              <button class="btn-danger" style="padding: 4px 10px; font-size: 0.75rem;" onclick="updateReservationStatus('${resv.id}', 'Rejected')">Reject</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadReservations() {
+      allReservations = AdminDB.getAllReservations();
+      filteredReservations = [...allReservations];
+
+      // Filter by status
+      const statusFilter = document.getElementById('filterStatus').value;
+      if (statusFilter !== 'all') {
+        filteredReservations = filteredReservations.filter(r => r.status === statusFilter);
+      }
+
+      // Filter by search
+      const searchQuery = document.getElementById('tableSearch').value.trim().toLowerCase();
+      if (searchQuery) {
+        filteredReservations = filteredReservations.filter(r =>
+          r.student_id.toLowerCase().includes(searchQuery) ||
+          r.student_name.toLowerCase().includes(searchQuery) ||
+          r.lab_room.toLowerCase().includes(searchQuery) ||
+          r.purpose.toLowerCase().includes(searchQuery)
+        );
+      }
+
+      renderTable();
+    }
+
+    function updateReservationStatus(id, status) {
+      const result = AdminDB.updateReservation(id, { status: status });
+      
+      if (result.success) {
+        alert(`Reservation ${status.toLowerCase()}!`);
+        loadReservations();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('reservationsTableBody');
+      if (!tbody) return;
+
+      if (filteredReservations.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="no-data">No reservations found</td></tr>';
+        renderPagination(0);
+        return;
+      }
+
+      const startIndex = (currentPage - 1) * entriesPerPage;
+      const endIndex = startIndex + entriesPerPage;
+      const pageData = filteredReservations.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageData.map(resv => {
+        const date = formatDate(resv.date);
+        const time = `${resv.start_time} - ${resv.end_time}`;
+        let statusColor = '#ffc107';
+        if (resv.status === 'Approved') statusColor = '#198754';
+        if (resv.status === 'Rejected') statusColor = '#dc3545';
+        if (resv.status === 'Completed') statusColor = '#6c757d';
+
+        return `
+          <tr>
+            <td>${resv.id}</td>
+            <td>${resv.student_id}</td>
+            <td>${resv.student_name}</td>
+            <td>${resv.lab_room}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td>${resv.purpose}</td>
+            <td>${resv.num_students}</td>
+            <td><span style="color: ${statusColor}; font-weight: 500;">${resv.status}</span></td>
+            <td>
+              <button class="btn-edit" onclick="editReservation('${resv.id}')">Edit</button>
+              <button class="btn-delete" onclick="deleteReservation('${resv.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      renderPagination(filteredReservations.length);
+    }
+
+    function renderPagination(totalItems) {
+      const pagination = document.getElementById('pagination');
+      if (!pagination) return;
+
+      const totalPages = Math.ceil(totalItems / entriesPerPage);
+      
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">«</button>`;
+      
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+      }
+      
+      html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">»</button>`;
+      
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      const totalPages = Math.ceil(filteredReservations.length / entriesPerPage);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderTable();
+    }
+
+    function changeEntriesPerPage() {
+      const select = document.getElementById('entriesPerPage');
+      entriesPerPage = parseInt(select.value);
+      currentPage = 1;
+      renderTable();
+    }
+
+    function editReservation(id) {
+      const resv = allReservations.find(r => r.id === id);
+      if (!resv) return;
+
+      const newPurpose = prompt('Edit Purpose:', resv.purpose);
+      if (newPurpose === null) return;
+
+      const newNumStudents = prompt('Edit Number of Students:', resv.num_students);
+      if (newNumStudents === null) return;
+
+      const result = AdminDB.updateReservation(id, {
+        purpose: newPurpose.trim() || resv.purpose,
+        num_students: parseInt(newNumStudents) || resv.num_students
+      });
+
+      if (result.success) {
+        alert('Reservation updated successfully!');
+        loadReservations();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    function deleteReservation(id) {
+      if (!confirm('Are you sure you want to delete this reservation?')) {
+        return;
+      }
+
+      const result = AdminDB.deleteReservation(id);
+      
+      if (result.success) {
+        alert('Reservation deleted successfully!');
+        loadReservations();
+      } else {
+        alert('Error: ' + result.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadReservations();
+    });
+  </script>
+</body>
+</html>

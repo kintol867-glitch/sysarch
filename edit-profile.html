@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - CCS</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .edit-profile-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .edit-profile-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+    .edit-profile-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .edit-profile-header h1 {
+      color: #380402;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .edit-profile-header p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .profile-picture-section {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .profile-picture-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #0d6efd;
+      margin-bottom: 15px;
+      background: #e9ecef;
+    }
+    .profile-picture-input {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-picture-input input[type="file"] {
+      display: none;
+    }
+    .profile-picture-input label {
+      background: #0d6efd;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 0.9rem;
+    }
+    .profile-picture-input label:hover {
+      background: #0b5ed7;
+    }
+    .profile-picture-input .remove-btn {
+      background: #dc3545;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border: none;
+      transition: background 0.2s;
+    }
+    .profile-picture-input .remove-btn:hover {
+      background: #b02a37;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .form-group input[readonly] {
+      background: #e9ecef;
+      cursor: not-allowed;
+    }
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .btn-primary {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      flex: 1;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      flex: 1;
+      transition: background 0.2s;
+      text-decoration: none;
+      text-align: center;
+      display: inline-block;
+    }
+    .btn-secondary:hover {
+      background: #5c636a;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #0d6efd;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="community.html">Community ▾</a>
+      <a href="about.html">About</a>
+      <a href="student-reservation.html">Reservation</a>
+      <a href="login.html" id="navLogin">Login</a>
+      <a href="register.html" id="navRegister">Register</a>
+    </div>
+  </nav>
+
+  <div class="edit-profile-container">
+    <a href="student-dashboard.html" class="back-link">← Back to Dashboard</a>
+    
+    <div class="edit-profile-card">
+      <div class="edit-profile-header">
+        <h1>✏️ Edit Profile</h1>
+        <p>Update your personal information</p>
+      </div>
+
+      <div class="profile-picture-section">
+        <img src="" alt="Profile Picture" id="profilePicturePreview" class="profile-picture-preview" style="display: none;">
+        <div id="profilePicturePlaceholder" class="profile-picture-preview" style="display: flex; align-items: center; justify-content: center; background: #0d6efd; color: #fff; font-size: 2.5rem; font-weight: bold;">
+          <span id="avatarInitial">A</span>
+        </div>
+        <div class="profile-picture-input">
+          <input type="file" id="profilePictureInput" accept="image/*" onchange="handleProfilePictureChange(event)">
+          <label for="profilePictureInput">📷 Choose Profile Picture</label>
+          <button type="button" class="remove-btn" onclick="removeProfilePicture()" id="removePictureBtn" style="display: none;">🗑️ Remove Picture</button>
+        </div>
+      </div>
+
+      <form id="editProfileForm">
+        <div class="form-group">
+          <label>ID Number</label>
+          <input type="text" id="editIdNumber" readonly>
+        </div>
+
+        <div class="form-group">
+          <label>First Name *</label>
+          <input type="text" id="editFirstName" required>
+        </div>
+
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input type="text" id="editLastName" required>
+        </div>
+
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input type="text" id="editMiddleName">
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="editEmail" required>
+        </div>
+
+        <div class="form-group">
+          <label>Course Program *</label>
+          <select id="editCourseProgram" required>
+            <option value="BSIT">BSIT - Bachelor of Science in Information Technology</option>
+            <option value="BSCS">BSCS - Bachelor of Science in Computer Science</option>
+            <option value="ACT">ACT - Associate in Computer Technology</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Year Level *</label>
+          <select id="editCourseLevel" required>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>New Password (leave blank to keep current)</label>
+          <input type="password" id="editPassword">
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="editConfirmPassword">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="window.location.href='student-dashboard.html'">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    let currentUser = null;
+    let profilePictureData = null;
+
+    // Check authentication
+    function checkAuth() {
+      currentUser = LocalDB.getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Load user data into form
+    function loadUserData() {
+      document.getElementById('editIdNumber').value = currentUser.id_number || '';
+      document.getElementById('editFirstName').value = currentUser.first_name || '';
+      document.getElementById('editLastName').value = currentUser.last_name || '';
+      document.getElementById('editMiddleName').value = currentUser.middle_name || '';
+      document.getElementById('editEmail').value = currentUser.email || '';
+      document.getElementById('editCourseProgram').value = currentUser.course_program || 'BSIT';
+      document.getElementById('editCourseLevel').value = currentUser.course_level || '1';
+      
+      // Load profile picture
+      loadProfilePicture();
+    }
+
+    // Load profile picture
+    function loadProfilePicture() {
+      const avatarInitial = document.getElementById('avatarInitial');
+      const picturePreview = document.getElementById('profilePicturePreview');
+      const picturePlaceholder = document.getElementById('profilePicturePlaceholder');
+      const removeBtn = document.getElementById('removePictureBtn');
+      
+      // Set initial
+      avatarInitial.textContent = (currentUser.first_name || 'A').charAt(0).toUpperCase();
+      
+      // Check if user has profile picture
+      if (currentUser.profile_picture) {
+        picturePreview.src = currentUser.profile_picture;
+        picturePreview.style.display = 'block';
+        picturePlaceholder.style.display = 'none';
+        removeBtn.style.display = 'block';
+        profilePictureData = currentUser.profile_picture;
+      } else {
+        picturePreview.style.display = 'none';
+        picturePlaceholder.style.display = 'flex';
+        removeBtn.style.display = 'none';
+        profilePictureData = null;
+      }
+    }
+
+    // Handle profile picture change
+    function handleProfilePictureChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        event.target.value = '';
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        profilePictureData = e.target.result;
+        
+        // Update preview
+        const picturePreview = document.getElementById('profilePicturePreview');
+        const picturePlaceholder = document.getElementById('profilePicturePlaceholder');
+        const removeBtn = document.getElementById('removePictureBtn');
+        
+        picturePreview.src = profilePictureData;
+        picturePreview.style.display = 'block';
+        picturePlaceholder.style.display = 'none';
+        removeBtn.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Remove profile picture
+    function removeProfilePicture() {
+      profilePictureData = null;
+      document.getElementById('profilePictureInput').value = '';
+      
+      const avatarInitial = document.getElementById('avatarInitial');
+      const picturePreview = document.getElementById('profilePicturePreview');
+      const picturePlaceholder = document.getElementById('profilePicturePlaceholder');
+      const removeBtn = document.getElementById('removePictureBtn');
+      
+      avatarInitial.textContent = (currentUser.first_name || 'A').charAt(0).toUpperCase();
+      picturePreview.style.display = 'none';
+      picturePlaceholder.style.display = 'flex';
+      removeBtn.style.display = 'none';
+    }
+
+    // Handle form submission
+    document.getElementById('editProfileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const firstName = document.getElementById('editFirstName').value.trim();
+      const lastName = document.getElementById('editLastName').value.trim();
+      const middleName = document.getElementById('editMiddleName').value.trim();
+      const email = document.getElementById('editEmail').value.trim();
+      const courseProgram = document.getElementById('editCourseProgram').value;
+      const courseLevel = document.getElementById('editCourseLevel').value;
+      const newPassword = document.getElementById('editPassword').value;
+      const confirmPassword = document.getElementById('editConfirmPassword').value;
+
+      // Validation
+      if (!firstName || !lastName || !email || !courseProgram || !courseLevel) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      if (newPassword && newPassword.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+
+      if (newPassword && newPassword !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      // Prepare update data
+      const updatedData = {
+        first_name: firstName,
+        last_name: lastName,
+        middle_name: middleName,
+        email: email,
+        course_program: courseProgram,
+        course_level: courseLevel
+      };
+
+      if (newPassword) {
+        updatedData.password = newPassword;
+      }
+
+      // Add profile picture if exists
+      if (profilePictureData) {
+        updatedData.profile_picture = profilePictureData;
+      }
+
+      const result = await LocalDB.updateUser(currentUser.id_number, updatedData);
+      if (!result.success) {
+        alert(result.message || 'Error updating profile.');
+        return;
+      }
+
+      // Update session storage
+      const updatedUser = result.user || { ...currentUser, ...updatedData };
+      sessionStorage.setItem('ccs_sitin_current_user', JSON.stringify(updatedUser));
+
+      alert('Profile updated successfully!');
+      window.location.href = 'student-dashboard.html';
+    });
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      loadUserData();
+
+      // Render user bubble in nav
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks) {
+        UserBubble.render(navLinks);
+      }
+    });
+  </script>
+</body>
+</html>

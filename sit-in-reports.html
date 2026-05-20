@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sit-in Reports - CCS Admin</title>
+  <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <span class="nav-brand">College of Computer Studies Admin</span>
+    </div>
+    <div class="nav-links">
+      <a href="admin.html">Home</a>
+      <a href="search-student.html">Search</a>
+      <a href="student-list.html">Students</a>
+      <a href="sit-in-form.html">Sit-in</a>
+      <a href="sit-in-requests.html">Sit-in Requests</a>
+      <a href="sit-in-records.html">Sit-in Records</a>
+      <a href="sit-in-reports.html" class="active">Sit-in Reports</a>
+      <a href="feedback-reports.html">Feedback Reports</a>
+      <a href="reservation.html">Reservation</a>
+      <a href="announcements.html">Announcements</a>
+      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+    
+    <div class="page-header">
+      <h1>Sit-in Reports</h1>
+    </div>
+
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-controls">
+          <label for="filterStatus">Filter by Status:</label>
+          <select id="filterStatus" onchange="applyFilters()">
+            <option value="all">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Active">Active</option>
+            <option value="Completed">Completed</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <label for="filterCourse">Filter by Course:</label>
+          <select id="filterCourse" onchange="applyFilters()">
+            <option value="all">All</option>
+            <option value="BSIT">BSIT</option>
+            <option value="BSCS">BSCS</option>
+            <option value="ACT">ACT</option>
+          </select>
+        </div>
+        <div class="table-controls">
+          <input type="date" id="filterDateFrom" placeholder="From Date" onchange="applyFilters()">
+          <input type="date" id="filterDateTo" placeholder="To Date" onchange="applyFilters()">
+        </div>
+        <button class="btn-primary" onclick="exportReport()">Export Report</button>
+      </div>
+
+      <div class="entries-control" style="margin-bottom: 15px;">
+        <label for="entriesPerPage">Show</label>
+        <select id="entriesPerPage" onchange="changeEntriesPerPage()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+        <span>entries per page</span>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Sit ID</th>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Course</th>
+            <th>Purpose</th>
+            <th>Lab</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+
+      <div class="pagination" id="pagination">
+        <!-- Pagination will be generated here -->
+      </div>
+
+      <!-- Summary Section -->
+      <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h3 style="margin-bottom: 10px; font-size: 1rem;">Summary</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #0d6efd;" id="totalReports">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Total Records</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #ffc107;" id="pendingCount">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Pending</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #198754;" id="activeCount">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Active</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #6c757d;" id="completedCount">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Completed</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;" id="rejectedCount">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Rejected</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: bold; color: #0d6efd;" id="todayCount">0</div>
+            <div style="font-size: 0.85rem; color: #666;">Today</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="admin-script.js"></script>
+  <script>
+    // Pagination state
+    let currentPage = 1;
+    let entriesPerPage = 10;
+    let allReports = [];
+    let filteredReports = [];
+
+    function loadReports() {
+      allReports = AdminDB.getAllSitIns();
+      filteredReports = [...allReports];
+      renderTable();
+      updateSummary();
+    }
+
+    function applyFilters() {
+      const statusFilter = document.getElementById('filterStatus').value;
+      const courseFilter = document.getElementById('filterCourse').value;
+      const dateFrom = document.getElementById('filterDateFrom').value;
+      const dateTo = document.getElementById('filterDateTo').value;
+
+      filteredReports = allReports.filter(report => {
+        // Status filter
+        if (statusFilter !== 'all' && report.status !== statusFilter) {
+          return false;
+        }
+
+        // Course filter - need to get student course
+        if (courseFilter !== 'all') {
+          const student = AdminDB.getUserById(report.student_id);
+          if (!student || student.course_program !== courseFilter) {
+            return false;
+          }
+        }
+
+        // Date filters
+        if (dateFrom) {
+          const reportDate = new Date(report.sitin_date || report.created_at);
+          const fromDate = new Date(dateFrom);
+          if (reportDate < fromDate) {
+            return false;
+          }
+        }
+
+        if (dateTo) {
+          const reportDate = new Date(report.sitin_date || report.created_at);
+          const toDate = new Date(dateTo);
+          if (reportDate > toDate) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      currentPage = 1;
+      renderTable();
+      updateSummary();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('reportsTableBody');
+      if (!tbody) return;
+
+      if (filteredReports.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="no-data">No sit-in records found</td></tr>';
+        renderPagination(0);
+        return;
+      }
+
+      const startIndex = (currentPage - 1) * entriesPerPage;
+      const endIndex = startIndex + entriesPerPage;
+      const pageData = filteredReports.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageData.map(report => {
+        const student = AdminDB.getUserById(report.student_id);
+        const course = student ? student.course_program : 'N/A';
+        const date = formatDate(report.sitin_date || report.created_at);
+        const time = report.start_time || 'N/A';
+        
+        let statusColor = '#6c757d';
+        if (report.status === 'Active') statusColor = '#198754';
+        else if (report.status === 'Pending') statusColor = '#ffc107';
+        else if (report.status === 'Rejected') statusColor = '#dc3545';
+        else if (report.status === 'Completed') statusColor = '#6c757d';
+
+        return `
+          <tr>
+            <td>${report.sitin_id || report.id}</td>
+            <td>${report.student_id}</td>
+            <td>${report.student_name}</td>
+            <td>${course}</td>
+            <td>${report.purpose}</td>
+            <td>${report.lab}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td><span style="color: ${statusColor}; font-weight: 500;">${report.status}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      renderPagination(filteredReports.length);
+    }
+
+    function renderPagination(totalItems) {
+      const pagination = document.getElementById('pagination');
+      if (!pagination) return;
+
+      const totalPages = Math.ceil(totalItems / entriesPerPage);
+      
+      if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">«</button>`;
+      
+      for (let i = 1; i <= totalPages; i++) {
+        html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+      }
+      
+      html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">»</button>`;
+      
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      const totalPages = Math.ceil(filteredReports.length / entriesPerPage);
+      if (page < 1 || page > totalPages) return;
+      currentPage = page;
+      renderTable();
+    }
+
+    function changeEntriesPerPage() {
+      const select = document.getElementById('entriesPerPage');
+      entriesPerPage = parseInt(select.value);
+      currentPage = 1;
+      renderTable();
+    }
+
+    function updateSummary() {
+      const today = new Date().toISOString().split('T')[0];
+
+      document.getElementById('totalReports').textContent = filteredReports.length;
+      document.getElementById('pendingCount').textContent = filteredReports.filter(r => r.status === 'Pending').length;
+      document.getElementById('activeCount').textContent = filteredReports.filter(r => r.status === 'Active').length;
+      document.getElementById('completedCount').textContent = filteredReports.filter(r => r.status === 'Completed').length;
+      document.getElementById('rejectedCount').textContent = filteredReports.filter(r => r.status === 'Rejected').length;
+      document.getElementById('todayCount').textContent = filteredReports.filter(r => {
+        const reportDate = (r.sitin_date || r.created_at || '').split('T')[0];
+        return reportDate === today;
+      }).length;
+    }
+
+    function exportReport() {
+      let csvContent = 'Sit ID,Student ID,Name,Course,Purpose,Lab,Date,Time,Status\n';
+      
+      filteredReports.forEach(report => {
+        const student = AdminDB.getUserById(report.student_id);
+        const course = student ? student.course_program : 'N/A';
+        const date = formatDate(report.sitin_date || report.created_at);
+        const time = report.start_time || 'N/A';
+        
+        csvContent += `"${report.sitin_id || report.id}","${report.student_id}","${report.student_name}","${course}","${report.purpose}","${report.lab}","${date}","${time}","${report.status}"\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitin_report_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      alert('Report exported successfully!');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadReports();
+    });
+  </script>
+</body>
+</html>

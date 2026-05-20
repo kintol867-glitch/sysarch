@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Reservation - CCS Student</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .reservation-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .reservation-header {
+      background: linear-gradient(135deg, #380402 0%, #5c0a06 100%);
+      color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .reservation-header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .reservation-header p {
+      opacity: 0.9;
+    }
+    .reservation-section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .reservation-section h3 {
+      color: #380402;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: Arial, sans-serif;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #0d6efd;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(13,110,253,0.15);
+    }
+    .btn-primary {
+      background: #0d6efd;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: #0b5ed7;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .data-table thead {
+      background: #f8f9fa;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .data-table th {
+      font-weight: 600;
+      color: #333;
+    }
+    .data-table tbody tr:hover {
+      background: #f8f9fa;
+    }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-approved {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .status-completed {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .form-message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none;
+    }
+    .form-message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .form-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-left">
+      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
+      <div class="nav-brand">College of Computer Studies Sit-in Monitoring System</div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html">Home</a>
+      <a href="community.html">Community ▾</a>
+      <a href="about.html">About</a>
+      <a href="student-reservation.html" class="active">Reservation</a>
+    </div>
+  </nav>
+
+  <div class="reservation-container">
+
+    <div class="reservation-header">
+      <h1>📅 Lab Reservation</h1>
+      <p>Reserve a computer lab for your study sessions</p>
+    </div>
+
+    <!-- New Reservation Form -->
+    <div class="reservation-section">
+      <h3>Make a New Reservation</h3>
+      <div class="form-group">
+        <label>Lab Room</label>
+        <select id="resvLabRoom">
+          <option value="">Select Lab Room</option>
+          <option value="Lab 524">Lab 524</option>
+          <option value="Lab 525">Lab 525</option>
+          <option value="Lab 526">Lab 526</option>
+          <option value="Lab 527">Lab 527</option>
+          <option value="Lab 528">Lab 528</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reservation Date</label>
+        <input type="date" id="resvDate">
+      </div>
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="time" id="resvStartTime">
+      </div>
+      <div class="form-group">
+        <label>End Time</label>
+        <input type="time" id="resvEndTime">
+      </div>
+      <div class="form-group">
+        <label>Purpose</label>
+        <textarea id="resvPurpose" placeholder="Enter purpose of reservation" style="min-height: 80px; resize: vertical;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Number of Students</label>
+        <input type="number" id="resvNumStudents" min="1" value="1">
+      </div>
+      <button class="btn-primary" style="width: 100%;" onclick="submitReservation()">Submit Reservation</button>
+      <div id="reservation_message" class="form-message"></div>
+    </div>
+
+    <!-- My Reservations List -->
+    <div class="reservation-section">
+      <h3>My Reservations</h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Reservation ID</th>
+            <th>Lab Room</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Purpose</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="myReservationsBody">
+          <!-- Data will be loaded here -->
+        </tbody>
+      </table>
+      <div id="noReservations" class="no-data" style="display: none;">No reservations yet</div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+  <script src="admin-script.js"></script>
+  <script>
+    let currentUser = null;
+
+    function checkAuth() {
+      currentUser = LocalDB.getCurrentUser();
+      if (!currentUser) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    function loadMyReservations() {
+      const allReservations = AdminDB.getAllReservations();
+      const myReservations = allReservations.filter(r => r.student_id === currentUser.id_number);
+
+      const tbody = document.getElementById('myReservationsBody');
+      const noData = document.getElementById('noReservations');
+
+      if (!tbody) return;
+
+      if (myReservations.length === 0) {
+        tbody.innerHTML = '';
+        if (noData) noData.style.display = 'block';
+        return;
+      }
+
+      if (noData) noData.style.display = 'none';
+      tbody.innerHTML = myReservations.map(resv => {
+        const date = formatDate(resv.date);
+        const time = `${resv.start_time} - ${resv.end_time}`;
+        let statusClass = 'status-pending';
+        if (resv.status === 'Approved') statusClass = 'status-approved';
+        if (resv.status === 'Rejected') statusClass = 'status-rejected';
+        if (resv.status === 'Completed') statusClass = 'status-completed';
+
+        return `
+          <tr>
+            <td>${resv.id}</td>
+            <td>${resv.lab_room}</td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td>${resv.purpose}</td>
+            <td><span class="status-badge ${statusClass}">${resv.status}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function submitReservation() {
+      const labRoomEl = document.getElementById('resvLabRoom');
+      const resvDateEl = document.getElementById('resvDate');
+      const startTimeEl = document.getElementById('resvStartTime');
+      const endTimeEl = document.getElementById('resvEndTime');
+      const purposeEl = document.getElementById('resvPurpose');
+      const numStudentsEl = document.getElementById('resvNumStudents');
+      const messageDiv = document.getElementById('reservation_message');
+
+      const labRoom = labRoomEl ? labRoomEl.value : '';
+      const resvDate = resvDateEl ? resvDateEl.value : '';
+      const startTime = startTimeEl ? startTimeEl.value : '';
+      const endTime = endTimeEl ? endTimeEl.value : '';
+      const purpose = purposeEl ? purposeEl.value.trim() : '';
+      const numStudents = numStudentsEl ? numStudentsEl.value : '';
+
+      if (!labRoom) { showMessage('Please select a lab room.', 'error'); return; }
+      if (!resvDate) { showMessage('Please select a date.', 'error'); return; }
+      if (!startTime || !endTime) { showMessage('Please select start and end times.', 'error'); return; }
+      if (!purpose) { showMessage('Please enter the purpose.', 'error'); return; }
+
+      const reservation = {
+        id: 'RESV-' + Date.now(),
+        student_id: currentUser.id_number,
+        student_name: `${currentUser.first_name} ${currentUser.last_name}`,
+        lab_room: labRoom,
+        date: resvDate,
+        start_time: startTime,
+        end_time: endTime,
+        purpose: purpose,
+        num_students: parseInt(numStudents),
+        status: 'Pending',
+        created_at: new Date().toISOString()
+      };
+
+      AdminDB.addReservation(reservation);
+      showMessage('Reservation submitted successfully! Please wait for admin approval.', 'success');
+
+      // Clear form
+      if (labRoomEl) labRoomEl.value = '';
+      if (resvDateEl) resvDateEl.value = '';
+      if (startTimeEl) startTimeEl.value = '';
+      if (endTimeEl) endTimeEl.value = '';
+      if (purposeEl) purposeEl.value = '';
+      if (numStudentsEl) numStudentsEl.value = '1';
+
+      // Reload reservations
+      setTimeout(() => {
+        loadMyReservations();
+        if (messageDiv) messageDiv.style.display = 'none';
+      }, 2000);
+    }
+
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('reservation_message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'form-message ' + type;
+      messageDiv.style.display = 'block';
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: 'numeric'
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      
+      // Set minimum date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('resvDate').setAttribute('min', today);
+      
+      // Render user bubble
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks) {
+        UserBubble.render(navLinks);
+      }
+      
+      loadMyReservations();
+    });
+  </script>
+</body>
+</html>
