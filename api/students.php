@@ -12,33 +12,34 @@ function student_public_fields($student) {
   return $student;
 }
 
-function get_student($pdo, $idNumber) {
-  $stmt = $pdo->prepare('SELECT * FROM students WHERE id_number = ? LIMIT 1');
-  $stmt->execute([$idNumber]);
-  $student = $stmt->fetch();
-  return $student ?: null;
+function get_student($supabase, $idNumber) {
+  $result = $supabase->get('students', ['id_number' => $idNumber]);
+  return is_array($result) && count($result) > 0 ? $result[0] : null;
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
+// GET all students or specific student
 if ($method === 'GET') {
   if (isset($_GET['id_number'])) {
-    $student = get_student($pdo, $_GET['id_number']);
+    $student = get_student($supabase, $_GET['id_number']);
     echo json_encode($student ? student_public_fields($student) : null);
     exit;
   }
 
-  $stmt = $pdo->query('SELECT id, id_number, first_name, last_name, middle_name, email, course_program, course_level, address, profile_picture, remaining_session, total_points, created_at, updated_at FROM students ORDER BY created_at DESC');
-  echo json_encode($stmt->fetchAll());
+  // Get all students
+  $result = $supabase->get('students');
+  echo json_encode(is_array($result) ? $result : []);
   exit;
 }
 
+// LOGIN
 if ($method === 'POST' && $action === 'login') {
   $data = read_json();
   $idNumber = trim($data['id_number'] ?? '');
   $password = $data['password'] ?? '';
-  $student = get_student($pdo, $idNumber);
+  $student = get_student($supabase, $idNumber);
 
   if (!$student) {
     echo json_encode(['success' => false, 'message' => 'User not found. Please register first.']);
@@ -61,6 +62,7 @@ if ($method === 'POST' && $action === 'login') {
   exit;
 }
 
+// BULK INSERT/UPDATE
 if ($method === 'POST' && $action === 'bulk') {
   $students = read_json();
   if (!is_array($students)) {
@@ -69,125 +71,139 @@ if ($method === 'POST' && $action === 'bulk') {
     exit;
   }
 
-  $stmt = $pdo->prepare(
-    'INSERT INTO students (id_number, first_name, last_name, middle_name, email, course_program, course_level, password, address, profile_picture, remaining_session, total_points, created_at)
-     VALUES (:id_number, :first_name, :last_name, :middle_name, :email, :course_program, :course_level, :password, :address, :profile_picture, :remaining_session, :total_points, :created_at)
-     ON DUPLICATE KEY UPDATE first_name = VALUES(first_name), last_name = VALUES(last_name), middle_name = VALUES(middle_name), email = VALUES(email), course_program = VALUES(course_program), course_level = VALUES(course_level), password = VALUES(password), address = VALUES(address), profile_picture = VALUES(profile_picture), remaining_session = VALUES(remaining_session), total_points = VALUES(total_points)'
-  );
-
+  $successCount = 0;
   foreach ($students as $student) {
     if (empty($student['id_number'])) continue;
-    $existingStudent = get_student($pdo, $student['id_number']);
+    
+    $existingStudent = get_student($supabase, $student['id_number']);
     $passwordToSave = $student['password'] ?? '';
     if ($passwordToSave === '' && $existingStudent) {
       $passwordToSave = $existingStudent['password'];
+    } else {
+      $passwordToSave = password_hash($passwordToSave, PASSWORD_DEFAULT);
     }
 
-    $stmt->execute([
-      ':id_number' => $student['id_number'],
-      ':first_name' => $student['first_name'] ?? '',
-      ':last_name' => $student['last_name'] ?? '',
-      ':middle_name' => $student['middle_name'] ?? '',
-      ':email' => $student['email'] ?? '',
-      ':course_program' => $student['course_program'] ?? '',
-      ':course_level' => $student['course_level'] ?? '',
-      ':password' => $passwordToSave,
-      ':address' => $student['address'] ?? '',
-      ':profile_picture' => $student['profile_picture'] ?? null,
-      ':remaining_session' => $student['remaining_session'] ?? 30,
-      ':total_points' => $student['total_points'] ?? 0,
-      ':created_at' => isset($student['created_at']) ? date('Y-m-d H:i:s', strtotime($student['created_at'])) : date('Y-m-d H:i:s')
-    ]);
+    $insertData = [
+      'id_number' => $student['id_number'],
+      'first_name' => $student['first_name'] ?? '',
+      'last_name' => $student['last_name'] ?? '',
+      'middle_name' => $student['middle_name'] ?? '',
+      'email' => $student['email'] ?? '',
+      'course_program' => $student['course_program'] ?? '',
+      'course_level' => $student['course_level'] ?? '',
+      'password' => $passwordToSave,
+      'address' => $student['address'] ?? '',
+      'profile_picture' => $student['profile_picture'] ?? null,
+      'remaining_session' => $student['remaining_session'] ?? 30,
+      'total_points' => $student['total_points'] ?? 0
+    ];
+
+    if ($existingStudent) {
+      $supabase->patch('students', $insertData, 'id_number', $student['id_number']);
+    } else {
+      $supabase->post('students', $insertData);
+    }
+    $successCount++;
   }
 
-  echo json_encode(['success' => true, 'message' => 'Students saved successfully.']);
+  echo json_encode(['success' => true, 'message' => "Saved $successCount students successfully."]);
   exit;
 }
 
+// REGISTER (new student)
 if ($method === 'POST') {
   $data = read_json();
   $idNumber = trim($data['id_number'] ?? '');
 
   if ($idNumber === '' || empty($data['first_name']) || empty($data['last_name']) || empty($data['password'])) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Missing required student fields.']);
+    echo json_encode(['success' => false, 'message' => 'Missing required student fields.', 'debug' => 'PHP validation failed']);
     exit;
   }
 
-  if (get_student($pdo, $idNumber)) {
+  // Check if user already exists
+  $existing = get_student($supabase, $idNumber);
+  if ($existing) {
     echo json_encode(['success' => false, 'message' => 'User with this ID number already exists!']);
     exit;
   }
 
-  $stmt = $pdo->prepare(
-    'INSERT INTO students (id_number, first_name, last_name, middle_name, email, course_program, course_level, password, address, profile_picture, remaining_session, total_points, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  );
+  $insertData = [
+    'id_number' => $idNumber,
+    'first_name' => $data['first_name'],
+    'last_name' => $data['last_name'],
+    'middle_name' => $data['middle_name'] ?? '',
+    'email' => $data['email'] ?? '',
+    'course_program' => $data['course_program'] ?? '',
+    'course_level' => $data['course_level'] ?? '',
+    'password' => password_hash($data['password'], PASSWORD_DEFAULT),
+    'address' => $data['address'] ?? '',
+    'profile_picture' => $data['profile_picture'] ?? null,
+    'remaining_session' => $data['remaining_session'] ?? 30,
+    'total_points' => $data['total_points'] ?? 0
+  ];
 
-  $stmt->execute([
-    $idNumber,
-    $data['first_name'],
-    $data['last_name'],
-    $data['middle_name'] ?? '',
-    $data['email'] ?? '',
-    $data['course_program'] ?? '',
-    $data['course_level'] ?? '',
-    password_hash($data['password'], PASSWORD_DEFAULT),
-    $data['address'] ?? '',
-    $data['profile_picture'] ?? null,
-    $data['remaining_session'] ?? 30,
-    $data['total_points'] ?? 0,
-    isset($data['created_at']) ? date('Y-m-d H:i:s', strtotime($data['created_at'])) : date('Y-m-d H:i:s')
-  ]);
+  $result = $supabase->post('students', $insertData);
+  
+  if (isset($result['error'])) {
+    http_response_code(400);
+    error_log('Supabase error: ' . json_encode($result));
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . ($result['message'] ?? 'Unknown error')]);
+    exit;
+  }
+  
+  if (is_null($result)) {
+    http_response_code(400);
+    error_log('Supabase returned null');
+    echo json_encode(['success' => false, 'message' => 'Registration failed: Database returned no response']);
+    exit;
+  }
 
-  echo json_encode(['success' => true, 'message' => 'Registration successful! Please login.']);
+  echo json_encode(['success' => true, 'message' => 'Registration successful! Please login.', 'data' => $insertData]);
   exit;
 }
 
+// UPDATE user profile
 if ($method === 'PUT') {
   $data = read_json();
   $idNumber = trim($_GET['id_number'] ?? ($data['id_number'] ?? ''));
 
-  if ($idNumber === '' || !get_student($pdo, $idNumber)) {
+  if ($idNumber === '' || !get_student($supabase, $idNumber)) {
     http_response_code(404);
     echo json_encode(['success' => false, 'message' => 'User not found!']);
     exit;
   }
 
   $allowed = ['first_name', 'last_name', 'middle_name', 'email', 'course_program', 'course_level', 'address', 'profile_picture', 'remaining_session', 'total_points'];
-  $sets = [];
-  $params = [];
+  $updateData = [];
 
   foreach ($allowed as $field) {
     if (array_key_exists($field, $data)) {
-      $sets[] = "$field = ?";
-      $params[] = $data[$field];
+      $updateData[$field] = $data[$field];
     }
   }
 
   if (!empty($data['password'])) {
-    $sets[] = 'password = ?';
-    $params[] = password_hash($data['password'], PASSWORD_DEFAULT);
+    $updateData['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
   }
 
-  if (!$sets) {
+  if (!$updateData) {
     echo json_encode(['success' => true, 'message' => 'No changes to save.']);
     exit;
   }
 
-  $params[] = $idNumber;
-  $stmt = $pdo->prepare('UPDATE students SET ' . implode(', ', $sets) . ' WHERE id_number = ?');
-  $stmt->execute($params);
+  $supabase->patch('students', $updateData, 'id_number', $idNumber);
+  $updated = get_student($supabase, $idNumber);
 
-  echo json_encode(['success' => true, 'message' => 'Profile updated successfully!', 'user' => student_public_fields(get_student($pdo, $idNumber))]);
+  echo json_encode(['success' => true, 'message' => 'Profile updated successfully!', 'user' => student_public_fields($updated)]);
   exit;
 }
 
+// DELETE student
 if ($method === 'DELETE') {
   $idNumber = trim($_GET['id_number'] ?? '');
-  $stmt = $pdo->prepare('DELETE FROM students WHERE id_number = ?');
-  $stmt->execute([$idNumber]);
-  echo json_encode(['success' => $stmt->rowCount() > 0, 'message' => $stmt->rowCount() > 0 ? 'User deleted successfully!' : 'User not found!']);
+  $deleted = $supabase->delete('students', 'id_number', $idNumber);
+  echo json_encode(['success' => $deleted, 'message' => $deleted ? 'User deleted successfully!' : 'User not found!']);
   exit;
 }
 

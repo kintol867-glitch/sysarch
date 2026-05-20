@@ -57,6 +57,7 @@ const LocalDB = {
 
   register: async function(userData) {
     try {
+      console.log('📝 Attempting registration...', userData.id_number);
       const response = await fetch(this.STUDENTS_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,11 +66,18 @@ const LocalDB = {
       const result = await response.json();
 
       if (result.success) {
-        await this.syncStudentsFromApi();
+        console.log('✓ Registration successful, syncing from Supabase...');
+        // Sync from Supabase instead of PHP
+        if (SupabaseDB && SupabaseDB.syncEnabled) {
+          await SupabaseDB.syncToLocalStorage();
+        } else {
+          await this.syncStudentsFromApi();
+        }
       }
 
       return result;
     } catch (e) {
+      console.error('Registration error:', e);
       return this.registerLocal(userData);
     }
   },
@@ -91,6 +99,7 @@ const LocalDB = {
 
   login: async function(idNumber, password) {
     try {
+      console.log('🔐 Attempting login...', idNumber);
       const response = await fetch(this.STUDENTS_API + '?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,12 +108,21 @@ const LocalDB = {
       const result = await response.json();
 
       if (result.success && result.user) {
+        console.log('✓ Login successful');
         sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(result.user));
-        await this.syncStudentsFromApi();
+        // Sync after login
+        if (SupabaseDB && SupabaseDB.syncEnabled) {
+          await SupabaseDB.syncToLocalStorage();
+        } else {
+          await this.syncStudentsFromApi();
+        }
+      } else {
+        console.log('✗ Login failed:', result.message);
       }
 
       return result;
     } catch (e) {
+      console.error('Login error:', e);
       return this.loginLocal(idNumber, password);
     }
   },

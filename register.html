@@ -6,6 +6,57 @@
   <title>CCS | Register</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
+  <script src="supabase-sync.js" defer></script>
+  
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('registerForm');
+      const messageEl = document.getElementById('register_message');
+      
+      if (form) {
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          messageEl.textContent = 'Processing...';
+          messageEl.className = 'form-message info';
+          
+          // Get form data
+          const userData = {
+            id_number: document.getElementById('reg_id').value.trim(),
+            first_name: document.getElementById('reg_first').value.trim(),
+            last_name: document.getElementById('reg_last').value.trim(),
+            middle_name: document.getElementById('reg_middle').value.trim(),
+            email: document.getElementById('reg_email').value.trim(),
+            course_program: document.getElementById('reg_course_program').value,
+            course_level: document.getElementById('reg_course_level').value,
+            password: document.getElementById('reg_password').value,
+            address: document.getElementById('reg_address').value.trim()
+          };
+          
+          // Validate passwords match
+          const repeatPassword = document.getElementById('reg_repeat_password').value;
+          if (userData.password !== repeatPassword) {
+            messageEl.textContent = 'Passwords do not match!';
+            messageEl.className = 'form-message error';
+            return;
+          }
+          
+          // Call register
+          const result = await LocalDB.register(userData);
+          
+          if (result.success) {
+            messageEl.textContent = result.message + ' Redirecting to login...';
+            messageEl.className = 'form-message success';
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 2000);
+          } else {
+            messageEl.textContent = result.message;
+            messageEl.className = 'form-message error';
+          }
+        });
+      }
+    });
+  </script>
 </head>
 <body>
 

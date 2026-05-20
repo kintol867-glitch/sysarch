@@ -6,6 +6,40 @@
   <title>CCS | Login</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
+  <script src="supabase-sync.js" defer></script>
+  
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('loginForm');
+      const messageEl = document.getElementById('login_message');
+      
+      if (form) {
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          messageEl.textContent = 'Processing...';
+          messageEl.className = 'form-message info';
+          
+          const idNumber = document.getElementById('login_id').value.trim();
+          const password = document.getElementById('login_password').value;
+          
+          console.log('🔐 Login attempt:', idNumber);
+          const result = await LocalDB.login(idNumber, password);
+          
+          if (result.success) {
+            messageEl.textContent = result.message + ' Redirecting...';
+            messageEl.className = 'form-message success';
+            setTimeout(() => {
+              window.location.href = 'student-dashboard.html';
+            }, 2000);
+          } else {
+            messageEl.textContent = result.message;
+            messageEl.className = 'form-message error';
+            console.log('❌ Login failed:', result.message);
+          }
+        });
+      }
+    });
+  </script>
 </head>
 <body>
 

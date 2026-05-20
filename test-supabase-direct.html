@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Detailed Test</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    .section { margin: 30px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    button { padding: 10px 15px; margin: 5px 0; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 3px; }
+    button:hover { background: #0056b3; }
+    .log { background: #f8f9fa; padding: 15px; max-height: 500px; overflow-y: auto; margin-top: 10px; font-family: monospace; font-size: 12px; border: 1px solid #dee2e6; border-radius: 3px; }
+    .error { color: #dc3545; }
+    .success { color: #28a745; }
+    .info { color: #0066cc; }
+    .warning { color: #ff9800; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Supabase API Direct Test</h1>
+  
+  <div class="section">
+    <h3>1. Test Direct Supabase Connection</h3>
+    <button onclick="testDirectSupabase()">Test Direct POST to Supabase</button>
+    <div id="log1" class="log"></div>
+  </div>
+
+  <div class="section">
+    <h3>2. Test via PHP API</h3>
+    <button onclick="testViaPhp()">Test Registration via PHP</button>
+    <div id="log2" class="log"></div>
+  </div>
+
+  <div class="section">
+    <h3>3. Verify in Supabase</h3>
+    <button onclick="verifySupabase()">Check Supabase Data</button>
+    <div id="log3" class="log"></div>
+  </div>
+
+  <div class="section">
+    <h3>Configuration</h3>
+    <div id="config" class="log"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://bspdslorhuuirukxrpmb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_om35B9G_pR_hqfOfERm_dg_XOtiouE6';
+
+    function log(elementId, message, type = 'info') {
+      const el = document.getElementById(elementId);
+      const line = document.createElement('div');
+      line.className = type;
+      const time = new Date().toLocaleTimeString();
+      line.textContent = `[${time}] ${message}`;
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // Show configuration
+    window.addEventListener('load', () => {
+      const config = document.getElementById('config');
+      config.innerHTML = `
+        <div class="info">URL: ${SUPABASE_URL}</div>
+        <div class="info">Key: ${SUPABASE_KEY.substring(0, 20)}...${SUPABASE_KEY.substring(SUPABASE_KEY.length - 10)}</div>
+      `;
+    });
+
+    async function testDirectSupabase() {
+      const logId = 'log1';
+      document.getElementById(logId).innerHTML = '';
+      log(logId, '📡 Testing direct Supabase POST...', 'info');
+
+      const testData = {
+        id_number: 'DIRECT' + Date.now(),
+        first_name: 'Direct',
+        last_name: 'Test',
+        email: 'direct@test.com',
+        password: 'hashedpassword123',
+        course_program: 'BSIT',
+        course_level: '1'
+      };
+
+      log(logId, `📤 Sending: ${JSON.stringify(testData)}`, 'info');
+
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/students`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(testData)
+          }
+        );
+
+        log(logId, `📊 HTTP Status: ${response.status} ${response.statusText}`, 'info');
+        const text = await response.text();
+        log(logId, `📥 Response: ${text}`, 'info');
+
+        if (!response.ok) {
+          log(logId, `❌ Failed to insert into Supabase`, 'error');
+          log(logId, `⚠️ Check if Row Level Security (RLS) is blocking writes`, 'warning');
+        } else {
+          log(logId, `✅ Successfully inserted into Supabase!`, 'success');
+          window.lastDirectId = testData.id_number;
+        }
+      } catch (error) {
+        log(logId, `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function testViaPhp() {
+      const logId = 'log2';
+      document.getElementById(logId).innerHTML = '';
+      log(logId, '📡 Testing via PHP API...', 'info');
+
+      const testData = {
+        id_number: 'PHPTEST' + Date.now(),
+        first_name: 'PHP',
+        last_name: 'Test',
+        email: 'php@test.com',
+        password: 'password123',
+        course_program: 'BSIT',
+        course_level: '1'
+      };
+
+      log(logId, `📤 Sending: ${JSON.stringify(testData)}`, 'info');
+
+      try {
+        const response = await fetch('api/students.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(testData)
+        });
+
+        log(logId, `📊 HTTP Status: ${response.status}`, 'info');
+        const result = await response.json();
+        log(logId, `📥 Response: ${JSON.stringify(result, null, 2)}`, 'info');
+
+        if (result.success) {
+          log(logId, `✅ PHP API returned success!`, 'success');
+          window.lastPhpId = testData.id_number;
+        } else {
+          log(logId, `❌ PHP API error: ${result.message}`, 'error');
+        }
+      } catch (error) {
+        log(logId, `❌ Error: ${error.message}`, 'error');
+      }
+    }
+
+    async function verifySupabase() {
+      const logId = 'log3';
+      document.getElementById(logId).innerHTML = '';
+      log(logId, '🔍 Checking Supabase data...', 'info');
+
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/students?select=*&order=created_at.desc&limit=5`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+          }
+        );
+
+        log(logId, `📊 HTTP Status: ${response.status}`, 'info');
+        const students = await response.json();
+
+        if (Array.isArray(students)) {
+          log(logId, `✅ Found ${students.length} students in Supabase`, 'success');
+          students.slice(0, 5).forEach(s => {
+            log(logId, `   - ${s.id_number}: ${s.first_name} ${s.last_name}`, 'info');
+          });
+        } else {
+          log(logId, `❌ Unexpected response: ${JSON.stringify(students)}`, 'error');
+        }
+      } catch (error) {
+        log(logId, `❌ Error: ${error.message}`, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
