@@ -95,7 +95,9 @@ if ($method === 'POST' && $action === 'bulk') {
       'address' => $student['address'] ?? '',
       'profile_picture' => $student['profile_picture'] ?? null,
       'remaining_session' => $student['remaining_session'] ?? 30,
-      'total_points' => $student['total_points'] ?? 0
+      'total_points' => $student['total_points'] ?? 0,
+      'total_sessions' => $student['total_sessions'] ?? 0,
+      'total_hours' => $student['total_hours'] ?? 0
     ];
 
     if ($existingStudent) {
@@ -174,7 +176,7 @@ if ($method === 'PUT') {
     exit;
   }
 
-  $allowed = ['first_name', 'last_name', 'middle_name', 'email', 'course_program', 'course_level', 'address', 'profile_picture', 'remaining_session', 'total_points'];
+  $allowed = ['first_name', 'last_name', 'middle_name', 'email', 'course_program', 'course_level', 'address', 'profile_picture', 'remaining_session', 'total_points', 'total_sessions', 'total_hours'];
   $updateData = [];
 
   foreach ($allowed as $field) {

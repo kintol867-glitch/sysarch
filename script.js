@@ -385,8 +385,8 @@ function initRegisterForm() {
         return;
       }
 
-      if (!/^\d+$/.test(idNumber)) {
-        showMessage('ID Number should contain only numbers.', 'error');
+      if (!/^(21|22|23)\d{6}$/.test(idNumber)) {
+        showMessage('ID Number must be 8 digits and start with 21, 22, or 23 (e.g. 21234567).', 'error');
         return;
       }
 

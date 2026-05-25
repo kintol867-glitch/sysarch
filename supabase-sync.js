@@ -137,6 +137,10 @@ const SupabaseDB = {
       localStorage.setItem(LocalDB.DB_NAME, JSON.stringify(supabaseData));
       localStorage.setItem(this.LAST_SYNC_KEY, new Date().toISOString());
       console.log('✓ Synced from Supabase to localStorage');
+      // Refresh leaderboard on index page if present
+      if (typeof loadHomeLeaderboards === 'function') {
+        loadHomeLeaderboards();
+      }
       return true;
     }
     

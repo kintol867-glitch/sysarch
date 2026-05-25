@@ -32,6 +32,14 @@
             address: document.getElementById('reg_address').value.trim()
           };
           
+          // Validate ID number: 8 digits starting with 21, 22, or 23
+          const idNumber = userData.id_number;
+          if (!/^(21|22|23)\d{6}$/.test(idNumber)) {
+            messageEl.textContent = 'ID Number must be 8 digits and start with 21, 22, or 23 (e.g. 21234567).';
+            messageEl.className = 'form-message error';
+            return;
+          }
+
           // Validate passwords match
           const repeatPassword = document.getElementById('reg_repeat_password').value;
           if (userData.password !== repeatPassword) {

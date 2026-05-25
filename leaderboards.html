@@ -8,61 +8,7 @@
 </head>
 <body class="leaderboard-page">
 
-  <nav class="admin-nav">
-    <div class="nav-left">
-      <img src="images/uclogo.png" alt="UC Logo" class="nav-logo">
-      <span class="nav-brand">College of Computer Studies Admin</span>
-    </div>
-    <div class="nav-links">
-      <a href="admin.html">Home</a>
-      <a href="search-student.html">Search</a>
-      <a href="student-list.html">Students</a>
-      <a href="sit-in-form.html">Sit-in</a>
-      <a href="sit-in-requests.html">Sit-in Requests</a>
-      <a href="sit-in-records.html">Sit-in Records</a>
-      <a href="sit-in-reports.html">Sit-in Reports</a>
-      <a href="feedback-reports.html">Feedback Reports</a>
-      <a href="reservation.html">Reservation</a>
-      <a href="announcements.html">Announcements</a>
-      <a href="#" onclick="adminLogout(); return false;" class="logout-btn">Log out</a>
-    </div>
-  </nav>
-
   <div class="admin-container">
-    <div class="page-header">
-      <h1>Student Leaderboards</h1>
-    </div>
-
-    <div class="leaderboard-grid" id="leaderboardSummary">
-      <div class="leaderboard-card">
-        <h3>Total Ranked Students</h3>
-        <div class="leaderboard-value" id="summaryStudents">0</div>
-        <div class="leaderboard-meta">Students currently included in the ranking.</div>
-      </div>
-      <div class="leaderboard-card">
-        <h3>Total Sessions</h3>
-        <div class="leaderboard-value" id="summarySessions">0</div>
-        <div class="leaderboard-meta">Total completed sit-in sessions across all students.</div>
-      </div>
-      <div class="leaderboard-card">
-        <h3>Total Sit-in Hours</h3>
-        <div class="leaderboard-value" id="summaryHours">0</div>
-        <div class="leaderboard-meta">Exact when time ranges exist, otherwise 1 hour per completed sit-in.</div>
-      </div>
-    </div>
-
-    <div class="leaderboard-highlight" id="leaderboardHighlights">
-      <div class="highlight-panel">
-        <div class="highlight-label">Top by Sessions</div>
-        <div class="highlight-name" id="topSessionsName">No data</div>
-        <div class="highlight-stat" id="topSessionsValue">0 sessions</div>
-      </div>
-      <div class="highlight-panel">
-        <div class="highlight-label">Top by Hours</div>
-        <div class="highlight-name" id="topHoursName">No data</div>
-        <div class="highlight-stat" id="topHoursValue">0 hrs</div>
-      </div>
-    </div>
 
     <div class="table-container leaderboard-table-section">
       <div class="table-header">
@@ -93,11 +39,6 @@
 
   <script src="admin-script.js"></script>
   <script>
-    function setHighlight(prefix, entry, suffix) {
-      document.getElementById(prefix + 'Name').textContent = entry ? entry.student_name : 'No data';
-      document.getElementById(prefix + 'Value').textContent = entry ? `${entry.value} ${suffix}` : `0 ${suffix}`;
-    }
-
     function renderLeaderboards() {
       const entries = AdminDB.getStudentLeaderboard();
       const tbody = document.getElementById('leaderboardTableBody');
@@ -110,19 +51,6 @@
       }
 
       empty.style.display = 'none';
-
-      const totalSessions = entries.reduce((sum, entry) => sum + entry.task_completed, 0);
-      const totalHours = entries.reduce((sum, entry) => sum + entry.total_hours, 0);
-
-      document.getElementById('summaryStudents').textContent = entries.length;
-      document.getElementById('summarySessions').textContent = totalSessions;
-      document.getElementById('summaryHours').textContent = totalHours.toFixed(2).replace(/\.00$/, '');
-
-      const topSessions = [...entries].sort((a, b) => b.task_completed - a.task_completed)[0];
-      const topHours = [...entries].sort((a, b) => b.total_hours - a.total_hours)[0];
-
-      setHighlight('topSessions', topSessions ? { student_name: topSessions.student_name, value: topSessions.task_completed } : null, 'sessions');
-      setHighlight('topHours', topHours ? { student_name: topHours.student_name, value: topHours.total_hours.toFixed(2).replace(/\.00$/, '') } : null, 'hrs');
 
       tbody.innerHTML = entries.map(entry => `
         <tr class="${entry.rank <= 3 ? `rank-row rank-${entry.rank}` : ''}">
@@ -138,6 +66,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       renderLeaderboards();
+      setInterval(renderLeaderboards, 30000);
     });
   </script>
 </body>

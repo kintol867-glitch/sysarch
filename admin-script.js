@@ -198,12 +198,35 @@ const AdminDB = {
     return sitins.filter(s => s.status === 'Pending');
   },
 
+  // Recompute and save total_sessions + total_hours onto the student record
+  syncStudentTotals: function(studentId) {
+    const sitins = this.getAllSitIns();
+    const studentSitins = sitins.filter(r => r.student_id === studentId);
+    const total_sessions = studentSitins.length;
+
+    const parseTime = t => {
+      if (!t || typeof t !== 'string') return null;
+      const p = t.split(':').map(Number);
+      return p.length >= 2 && !isNaN(p[0]) && !isNaN(p[1]) ? p[0] * 60 + p[1] : null;
+    };
+    const total_hours = Math.round(studentSitins.reduce((sum, r) => {
+      const d = Number(r.duration_hours || r.total_hours || r.hours_rendered || 0);
+      if (!isNaN(d) && d > 0) return sum + d;
+      const s = parseTime(r.start_time), e = parseTime(r.end_time);
+      if (s !== null && e !== null && e >= s) return sum + (e - s) / 60;
+      return sum + 1;
+    }, 0) * 100) / 100;
+
+    this.updateUser(studentId, { total_sessions, total_hours });
+  },
+
   addSitIn: function(sitinData) {
     const sitins = this.getAllSitIns();
     sitinData.id = Date.now().toString();
     sitinData.created_at = new Date().toISOString();
     sitins.push(sitinData);
     localStorage.setItem(this.SITIN_KEY, JSON.stringify(sitins));
+    this.syncStudentTotals(sitinData.student_id);
     return { success: true, message: 'Sit-in recorded successfully!' };
   },
 
@@ -215,6 +238,7 @@ const AdminDB = {
     }
     sitins[index] = { ...sitins[index], ...updatedData, updated_at: new Date().toISOString() };
     localStorage.setItem(this.SITIN_KEY, JSON.stringify(sitins));
+    this.syncStudentTotals(sitins[index].student_id);
     return { success: true, message: 'Sit-in updated successfully!' };
   },
 
@@ -375,7 +399,7 @@ const AdminDB = {
       // If no computers exist, initialize with default lab computers
       if (computers.length === 0) {
         const defaultComputers = [];
-        const labs = ['Lab 524', 'Lab 525', 'Lab 526', 'Lab 527', 'Lab 528'];
+        const labs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 542', 'Lab 544'];
         let computerId = 1;
         labs.forEach(lab => {
           for (let i = 1; i <= 10; i++) {
@@ -461,39 +485,23 @@ const AdminDB = {
       return record.status === 'Completed' ? 1 : 0;
     };
 
-    const getBasePoints = function(user) {
-      const storedPoints = Number(
-        user.earned_points ??
-        user.points ??
-        user.total_points ??
-        user.score ??
-        0
-      );
-      return Number.isNaN(storedPoints) ? 0 : storedPoints;
-    };
-
     return users.map(user => {
-      const studentSitins = sitins.filter(record => record.student_id === user.id_number);
-      const completedSitins = studentSitins.filter(record => record.status === 'Completed');
-      const taskCompleted = completedSitins.length;
-      const totalHours = completedSitins.reduce((sum, record) => sum + getRecordHours(record), 0);
-      const derivedPoints = taskCompleted * 10 + totalHours * 2;
-      const earnedPoints = getBasePoints(user) || derivedPoints;
+    const studentSitins = sitins.filter(record => record.student_id === user.id_number);
+    const totalSessions = studentSitins.length;
+    const totalHours = studentSitins.reduce((sum, record) => sum + getRecordHours(record), 0);
 
       return {
         student_id: user.id_number,
         student_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.id_number,
         course_program: user.course_program || 'N/A',
         year_level: user.course_level || '',
-        earned_points: Math.round(earnedPoints * 100) / 100,
         total_hours: Math.round(totalHours * 100) / 100,
-        task_completed: taskCompleted,
-        completed_sitins: taskCompleted
+        task_completed: totalSessions,
+        completed_sitins: totalSessions
       };
     }).sort((a, b) => {
-      if (b.earned_points !== a.earned_points) return b.earned_points - a.earned_points;
-      if (b.total_hours !== a.total_hours) return b.total_hours - a.total_hours;
-      return b.task_completed - a.task_completed;
+      if (b.task_completed !== a.task_completed) return b.task_completed - a.task_completed;
+      return b.total_hours - a.total_hours;
     }).map((entry, index) => ({
       ...entry,
       rank: index + 1

@@ -65,6 +65,8 @@
             <th>Name</th>
             <th>Year Level</th>
             <th>Course</th>
+            <th>Sessions</th>
+            <th>Hours</th>
             <th>Remaining Session</th>
             <th>Actions</th>
           </tr>
@@ -210,10 +212,12 @@
     let currentPage = 1;
     let entriesPerPage = 10;
     let allStudents = [];
+    let allSitIns = [];
     let filteredStudents = [];
 
     function loadStudents() {
       allStudents = AdminDB.getAllUsers();
+      allSitIns = AdminDB.getAllSitIns();
       filteredStudents = [...allStudents];
       renderTable();
     }
@@ -223,7 +227,7 @@
       if (!tbody) return;
 
       if (filteredStudents.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data">No students found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No students found</td></tr>';
         renderPagination(0);
         return;
       }
@@ -232,19 +236,33 @@
       const endIndex = startIndex + entriesPerPage;
       const pageData = filteredStudents.slice(startIndex, endIndex);
 
-      tbody.innerHTML = pageData.map(student => `
+      tbody.innerHTML = pageData.map(student => {
+        const completed = allSitIns.filter(r => r.student_id === student.id_number);
+        const sessions = completed.length;
+        const hours = completed.reduce((sum, r) => {
+          const d = Number(r.duration_hours || r.total_hours || r.hours_rendered || 0);
+          if (!isNaN(d) && d > 0) return sum + d;
+          const sp = r.start_time ? r.start_time.split(':').map(Number) : null;
+          const ep = r.end_time ? r.end_time.split(':').map(Number) : null;
+          if (sp && ep && ep[0] * 60 + ep[1] >= sp[0] * 60 + sp[1]) return sum + ((ep[0] * 60 + ep[1] - sp[0] * 60 - sp[1]) / 60);
+          return sum + (r.status === 'Completed' ? 1 : 0);
+        }, 0);
+        const hoursDisplay = hours % 1 === 0 ? hours : hours.toFixed(2);
+        return `
         <tr>
           <td>${student.id_number}</td>
           <td>${student.first_name} ${student.last_name}</td>
           <td>${getLevelText(student.course_level)}</td>
           <td>${student.course_program}</td>
+          <td>${sessions}</td>
+          <td>${hoursDisplay}</td>
           <td>${student.remaining_session || 30}</td>
           <td>
             <button class="btn-edit" onclick="editStudent('${student.id_number}')">Edit</button>
             <button class="btn-delete" onclick="deleteStudent('${student.id_number}')">Delete</button>
           </td>
         </tr>
-      `).join('');
+      `}).join('');
 
       renderPagination(filteredStudents.length);
     }
@@ -327,6 +345,11 @@
 
       if (!idNumber || !firstName || !lastName || !email || !courseProgram || !courseLevel || !password) {
         alert('Please fill in all required fields.');
+        return;
+      }
+
+      if (!/^(21|22|23)\d{6}$/.test(idNumber)) {
+        alert('ID Number must be 8 digits and start with 21, 22, or 23 (e.g. 21234567).');
         return;
       }
 

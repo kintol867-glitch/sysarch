@@ -499,8 +499,9 @@
       document.getElementById('completedToday').textContent = completedToday.length;
       
       // Count available labs (labs without active sessions)
-      const allLabs = ['Lab 524', 'Lab 525', 'Lab 526', 'Lab 527', 'Lab 528'];
+      const allLabs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 542', 'Lab 544'];
       const occupiedLabs = activeSessions.map(s => s.lab).filter(l => l);
+
       const availableLabs = allLabs.filter(l => !occupiedLabs.includes(l)).length;
       document.getElementById('availableLabs').textContent = availableLabs;
     }
@@ -575,7 +576,7 @@
 
       // Get available labs
       const activeSessions = allSitIns.filter(s => s.status === 'Active');
-      const allLabs = ['Lab 524', 'Lab 525', 'Lab 526', 'Lab 527', 'Lab 528'];
+      const allLabs = ['Lab 524', 'Lab 526', 'Lab 528', 'Lab 530', 'Lab 542', 'Lab 544'];
       const occupiedLabs = activeSessions.map(s => s.lab).filter(l => l);
       const availableLabs = allLabs.filter(l => !occupiedLabs.includes(l));
 

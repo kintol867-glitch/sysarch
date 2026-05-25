@@ -256,7 +256,6 @@
     }
   </style>
   <script src="script.js"></script>
-  <script src="admin-script.js"></script>
 </head>
 <body>
 
@@ -267,7 +266,6 @@
     </div>
     <div class="nav-links" id="navLinks">
       <a href="index.html">Home</a>
-      <a href="#leaderboardsSection">Leaderboards</a>
       <a href="community.html">Community ▾</a>
       <a href="about.html">About</a>
       <a href="student-reservation.html" id="navReservation" style="display: none;">Reservation</a>
@@ -307,9 +305,8 @@
                 <th>Rank</th>
                 <th>Student</th>
                 <th>Course</th>
-                <th>Points</th>
+                <th>Sessions</th>
                 <th>Hours</th>
-                <th>Tasks</th>
               </tr>
             </thead>
             <tbody id="homeLeaderboardBody">
@@ -536,35 +533,96 @@
       tbody.innerHTML = html;
     }
 
-    function loadHomeLeaderboards() {
+    async function loadHomeLeaderboards() {
       var tbody = document.getElementById('homeLeaderboardBody');
       var empty = document.getElementById('homeLeaderboardEmpty');
-      if (!tbody || typeof AdminDB === 'undefined' || !AdminDB.getStudentLeaderboard) return;
+      if (!tbody) return;
 
-      var entries = AdminDB.getStudentLeaderboard().slice(0, 10);
-      if (entries.length === 0) {
+      try {
+        // Try localStorage first, fallback to Supabase directly
+        var users = JSON.parse(localStorage.getItem('ccs_sitin_users') || '[]');
+
+        // If empty, try fetching from Supabase directly
+        if (users.length === 0 && typeof SupabaseDB !== 'undefined' && SupabaseDB.syncEnabled) {
+          var fetched = await SupabaseDB.fetchFromSupabase();
+          if (fetched && Array.isArray(fetched) && fetched.length > 0) {
+            users = fetched;
+            localStorage.setItem('ccs_sitin_users', JSON.stringify(users));
+          }
+        }
+        var sitins = JSON.parse(localStorage.getItem('ccs_sitin_records') || '[]');
+
+        function parseTimeToMinutes(t) {
+          if (!t || typeof t !== 'string') return null;
+          var parts = t.split(':').map(Number);
+          if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+          return parts[0] * 60 + parts[1];
+        }
+
+        function getRecordHours(record) {
+          var d = Number(record.duration_hours || record.total_hours || record.hours_rendered || 0);
+          if (!isNaN(d) && d > 0) return d;
+          var s = parseTimeToMinutes(record.start_time);
+          var e = parseTimeToMinutes(record.end_time);
+          if (s !== null && e !== null && e >= s) return (e - s) / 60;
+          return 1;
+        }
+
+        var entries = [];
+        for (var i = 0; i < users.length; i++) {
+          var user = users[i];
+          // Use stored totals if available, else compute from local sit-in records
+          var totalSessions = Number(user.total_sessions || 0);
+          var totalHours = Number(user.total_hours || 0);
+          if (totalSessions === 0) {
+            var userSitins = sitins.filter(function(r) { return r.student_id === user.id_number; });
+            totalSessions = userSitins.length;
+            totalHours = userSitins.reduce(function(sum, r) { return sum + getRecordHours(r); }, 0);
+          }
+          entries.push({
+            student_name: ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || user.id_number,
+            course_program: user.course_program || 'N/A',
+            total_sessions: totalSessions,
+            total_hours: Math.round(totalHours * 100) / 100
+          });
+        }
+
+        entries.sort(function(a, b) {
+          if (b.total_sessions !== a.total_sessions) return b.total_sessions - a.total_sessions;
+          return b.total_hours - a.total_hours;
+        });
+
+        var top10 = entries.slice(0, 10);
+
+        if (top10.length === 0) {
+          tbody.innerHTML = '';
+          if (empty) empty.style.display = 'block';
+          return;
+        }
+
+        if (empty) empty.style.display = 'none';
+
+        var html = '';
+        for (var j = 0; j < top10.length; j++) {
+          var entry = top10[j];
+          var rank = j + 1;
+          var rankClass = rank <= 3 ? ' class="rank-' + rank + '"' : '';
+          var hours = entry.total_hours % 1 === 0 ? entry.total_hours : entry.total_hours.toFixed(2);
+          html += '<tr' + rankClass + '>';
+          html += '<td><span class="rank-badge">#' + rank + '</span></td>';
+          html += '<td>' + entry.student_name + '</td>';
+          html += '<td>' + entry.course_program + '</td>';
+          html += '<td>' + entry.total_sessions + '</td>';
+          html += '<td>' + hours + '</td>';
+          html += '</tr>';
+        }
+        tbody.innerHTML = html;
+
+      } catch (e) {
+        console.error('Leaderboard error:', e);
         tbody.innerHTML = '';
         if (empty) empty.style.display = 'block';
-        return;
       }
-
-      if (empty) empty.style.display = 'none';
-
-      var html = '';
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var rankClass = entry.rank <= 3 ? ' class="rank-' + entry.rank + '"' : '';
-        html += '<tr' + rankClass + '>';
-        html += '<td><span class="rank-badge">#' + entry.rank + '</span></td>';
-        html += '<td>' + entry.student_name + '</td>';
-        html += '<td>' + entry.course_program + '</td>';
-        html += '<td>' + entry.earned_points.toFixed(2).replace(/\.00$/, '') + '</td>';
-        html += '<td>' + entry.total_hours.toFixed(2).replace(/\.00$/, '') + '</td>';
-        html += '<td>' + entry.task_completed + '</td>';
-        html += '</tr>';
-      }
-
-      tbody.innerHTML = html;
     }
 
     // Format date
@@ -587,7 +645,15 @@
       }
 
       loadMySitInSessions();
-      loadHomeLeaderboards();
+
+      // Load leaderboard after Supabase sync completes, or immediately if already populated
+      var users = JSON.parse(localStorage.getItem('ccs_sitin_users') || '[]');
+      if (users.length > 0) {
+        loadHomeLeaderboards();
+      }
+      // Always re-render after sync settles (covers both fresh and cached)
+      setTimeout(loadHomeLeaderboards, 1500);
+      setInterval(loadHomeLeaderboards, 30000);
 
       // Create stars dynamicallyically
       var starContainer = document.getElementById('starContainer');
