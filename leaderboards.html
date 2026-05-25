@@ -40,37 +40,27 @@
         <div class="leaderboard-meta">Students currently included in the ranking.</div>
       </div>
       <div class="leaderboard-card">
-        <h3>Total Earned Points</h3>
-        <div class="leaderboard-value" id="summaryPoints">0</div>
-        <div class="leaderboard-meta">Based on stored points or derived leaderboard scoring.</div>
+        <h3>Total Sessions</h3>
+        <div class="leaderboard-value" id="summarySessions">0</div>
+        <div class="leaderboard-meta">Total completed sit-in sessions across all students.</div>
       </div>
       <div class="leaderboard-card">
         <h3>Total Sit-in Hours</h3>
         <div class="leaderboard-value" id="summaryHours">0</div>
         <div class="leaderboard-meta">Exact when time ranges exist, otherwise 1 hour per completed sit-in.</div>
       </div>
-      <div class="leaderboard-card">
-        <h3>Total Tasks Completed</h3>
-        <div class="leaderboard-value" id="summaryTasks">0</div>
-        <div class="leaderboard-meta">Completed sit-in sessions currently count as completed tasks.</div>
-      </div>
     </div>
 
     <div class="leaderboard-highlight" id="leaderboardHighlights">
       <div class="highlight-panel">
-        <div class="highlight-label">Top by Points</div>
-        <div class="highlight-name" id="topPointsName">No data</div>
-        <div class="highlight-stat" id="topPointsValue">0 pts</div>
+        <div class="highlight-label">Top by Sessions</div>
+        <div class="highlight-name" id="topSessionsName">No data</div>
+        <div class="highlight-stat" id="topSessionsValue">0 sessions</div>
       </div>
       <div class="highlight-panel">
         <div class="highlight-label">Top by Hours</div>
         <div class="highlight-name" id="topHoursName">No data</div>
         <div class="highlight-stat" id="topHoursValue">0 hrs</div>
-      </div>
-      <div class="highlight-panel">
-        <div class="highlight-label">Top by Tasks</div>
-        <div class="highlight-name" id="topTasksName">No data</div>
-        <div class="highlight-stat" id="topTasksValue">0 tasks</div>
       </div>
     </div>
 
@@ -80,7 +70,7 @@
       </div>
       <div class="announcement-content">
         <div class="leaderboard-note">
-          Ranking order uses earned points first, then total sit-in hours, then completed tasks.
+          Ranking order uses total sessions first, then total sit-in hours.
         </div>
         <table class="data-table">
           <thead>
@@ -89,9 +79,8 @@
               <th>Student ID</th>
               <th>Student Name</th>
               <th>Course</th>
-              <th>Earned Points</th>
+              <th>Total Sessions</th>
               <th>Total Sit-in Hours</th>
-              <th>Tasks Completed</th>
             </tr>
           </thead>
           <tbody id="leaderboardTableBody">
@@ -122,22 +111,18 @@
 
       empty.style.display = 'none';
 
-      const totalPoints = entries.reduce((sum, entry) => sum + entry.earned_points, 0);
+      const totalSessions = entries.reduce((sum, entry) => sum + entry.task_completed, 0);
       const totalHours = entries.reduce((sum, entry) => sum + entry.total_hours, 0);
-      const totalTasks = entries.reduce((sum, entry) => sum + entry.task_completed, 0);
 
       document.getElementById('summaryStudents').textContent = entries.length;
-      document.getElementById('summaryPoints').textContent = totalPoints.toFixed(2).replace(/\.00$/, '');
+      document.getElementById('summarySessions').textContent = totalSessions;
       document.getElementById('summaryHours').textContent = totalHours.toFixed(2).replace(/\.00$/, '');
-      document.getElementById('summaryTasks').textContent = totalTasks;
 
-      const topPoints = [...entries].sort((a, b) => b.earned_points - a.earned_points)[0];
+      const topSessions = [...entries].sort((a, b) => b.task_completed - a.task_completed)[0];
       const topHours = [...entries].sort((a, b) => b.total_hours - a.total_hours)[0];
-      const topTasks = [...entries].sort((a, b) => b.task_completed - a.task_completed)[0];
 
-      setHighlight('topPoints', topPoints ? { student_name: topPoints.student_name, value: topPoints.earned_points.toFixed(2).replace(/\.00$/, '') } : null, 'pts');
+      setHighlight('topSessions', topSessions ? { student_name: topSessions.student_name, value: topSessions.task_completed } : null, 'sessions');
       setHighlight('topHours', topHours ? { student_name: topHours.student_name, value: topHours.total_hours.toFixed(2).replace(/\.00$/, '') } : null, 'hrs');
-      setHighlight('topTasks', topTasks ? { student_name: topTasks.student_name, value: topTasks.task_completed } : null, 'tasks');
 
       tbody.innerHTML = entries.map(entry => `
         <tr class="${entry.rank <= 3 ? `rank-row rank-${entry.rank}` : ''}">
@@ -145,9 +130,8 @@
           <td>${entry.student_id}</td>
           <td>${entry.student_name}</td>
           <td>${entry.course_program}</td>
-          <td>${entry.earned_points.toFixed(2).replace(/\.00$/, '')}</td>
-          <td>${entry.total_hours.toFixed(2).replace(/\.00$/, '')}</td>
           <td>${entry.task_completed}</td>
+          <td>${entry.total_hours.toFixed(2).replace(/\.00$/, '')}</td>
         </tr>
       `).join('');
     }
